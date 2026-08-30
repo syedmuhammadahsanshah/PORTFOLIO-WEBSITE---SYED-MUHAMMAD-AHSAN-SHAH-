@@ -1,6 +1,7 @@
 import React from 'react';
 import { Building2, MapPin, ArrowRight, CheckCircle, ArrowUpRight } from 'lucide-react';
-import { portfolioData, CaseStudy } from '../data/portfolioData';
+import { CaseStudy } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface FeaturedCaseStudiesSectionProps {
   onSelectCaseStudy: (study: CaseStudy) => void;
@@ -11,7 +12,8 @@ export const FeaturedCaseStudiesSection: React.FC<FeaturedCaseStudiesSectionProp
   onSelectCaseStudy,
   onViewAllCaseStudies,
 }) => {
-  const featuredStudies = portfolioData.caseStudies.filter((s) => s.featured);
+  const { data } = usePortfolio();
+  const featuredStudies = data.caseStudies.filter((s) => s.featured);
 
   return (
     <section id="featured-case-studies" className="py-20 bg-[#0D1424] border-t border-[#1E2C48] relative">

@@ -1,13 +1,14 @@
 import React from 'react';
-import { Mail, Phone, Linkedin, MapPin, ArrowUp, ShieldCheck } from 'lucide-react';
-import { portfolioData } from '../data/portfolioData';
+import { Mail, Phone, Linkedin, MapPin, ArrowUp, ShieldCheck, Lock } from 'lucide-react';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
-  const { consultant } = portfolioData;
+  const { data, openAdminModal } = usePortfolio();
+  const { consultant } = data;
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,7 +111,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <p>© 2026 Syed M. Ahsan Shah. All rights reserved.</p>
+          <div className="flex items-center gap-3">
+            <p>© 2026 Syed M. Ahsan Shah. All rights reserved.</p>
+            <span className="text-[#1E2C48]">•</span>
+            <button
+              onClick={openAdminModal}
+              className="text-[#8B97AC] hover:text-[#D9A94E] flex items-center gap-1 transition-colors"
+            >
+              <Lock className="w-3 h-3 text-[#D9A94E]" />
+              <span>Consultant Portal</span>
+            </button>
+          </div>
 
           <button
             onClick={scrollToTop}

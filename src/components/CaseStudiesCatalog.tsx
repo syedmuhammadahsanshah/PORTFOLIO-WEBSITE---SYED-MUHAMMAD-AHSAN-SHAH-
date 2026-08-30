@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Building2, MapPin, CheckCircle, ArrowRight, Filter, Search, ArrowUpRight, Layers } from 'lucide-react';
-import { portfolioData, CaseStudy } from '../data/portfolioData';
+import { CaseStudy } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface CaseStudiesCatalogProps {
   onSelectCaseStudy: (study: CaseStudy) => void;
@@ -9,7 +10,8 @@ interface CaseStudiesCatalogProps {
 export const CaseStudiesCatalog: React.FC<CaseStudiesCatalogProps> = ({
   onSelectCaseStudy,
 }) => {
-  const { caseStudies } = portfolioData;
+  const { data } = usePortfolio();
+  const { caseStudies } = data;
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activeModuleFilter, setActiveModuleFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');

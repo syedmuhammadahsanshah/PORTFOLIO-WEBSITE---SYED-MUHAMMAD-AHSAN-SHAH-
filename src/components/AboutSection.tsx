@@ -1,13 +1,14 @@
 import React from 'react';
 import { Quote, CheckCircle, Briefcase, Calendar, Award, ArrowUpRight, ShieldCheck, Factory, Cpu, Layers } from 'lucide-react';
-import { portfolioData } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface AboutSectionProps {
   onNavigate: (sectionId: string) => void;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
-  const { consultant, timeline, skills } = portfolioData;
+  const { data } = usePortfolio();
+  const { consultant, timeline, skills } = data;
 
   return (
     <section id="about-section" className="py-20 bg-[#0A0E1A] relative">

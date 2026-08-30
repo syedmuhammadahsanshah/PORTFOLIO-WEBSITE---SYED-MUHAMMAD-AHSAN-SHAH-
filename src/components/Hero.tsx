@@ -1,13 +1,14 @@
 import React from 'react';
 import { ArrowRight, Mail, Shield, CheckCircle, Award, Database, Factory } from 'lucide-react';
-import { portfolioData } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface HeroProps {
   onNavigate: (sectionId: string) => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
-  const { consultant } = portfolioData;
+  const { data } = usePortfolio();
+  const { consultant } = data;
 
   return (
     <section

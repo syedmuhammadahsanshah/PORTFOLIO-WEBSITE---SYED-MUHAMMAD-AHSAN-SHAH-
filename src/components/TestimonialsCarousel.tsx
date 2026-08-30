@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Quote, MapPin, Building, Award } from 'lucide-react';
-import { portfolioData } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 
 export const TestimonialsCarousel: React.FC = () => {
-  const { testimonials } = portfolioData;
+  const { data } = usePortfolio();
+  const { testimonials } = data;
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextSlide = () => {

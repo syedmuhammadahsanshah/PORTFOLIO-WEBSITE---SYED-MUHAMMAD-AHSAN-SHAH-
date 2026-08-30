@@ -1,9 +1,10 @@
 import React from 'react';
-import { portfolioData } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 import { Factory, Building, ShieldCheck } from 'lucide-react';
 
 export const IndustriesMarquee: React.FC = () => {
-  const { industriesMarquee } = portfolioData;
+  const { data } = usePortfolio();
+  const { industriesMarquee } = data;
 
   // Duplicate for smooth seamless loop
   const marqueeItems = [...industriesMarquee, ...industriesMarquee];

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ArrowUpRight, ShieldCheck } from 'lucide-react';
-import { portfolioData } from '../data/portfolioData';
+import { Menu, X, ArrowUpRight, ShieldCheck, Lock } from 'lucide-react';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface NavbarProps {
   activeSection: string;
@@ -8,6 +8,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => {
+  const { data, openAdminModal, isAdminAuthenticated } = usePortfolio();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -53,13 +54,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => 
             <div className="w-10 h-10 rounded-lg bg-[#121B2E] border border-[#1E2C48] group-hover:border-[#3B82F6]/60 flex items-center justify-center transition-all duration-300 shadow-sm relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#2F6FED]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <span className="font-heading font-bold text-sm tracking-wider text-[#F2F5F9] group-hover:text-[#3B82F6] transition-colors">
-                {portfolioData.consultant.brandInitials}
+                {data.consultant.brandInitials}
               </span>
               <div className="absolute bottom-0 left-1 right-1 h-[2px] bg-[#D9A94E]/60 rounded-full" />
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-semibold text-sm sm:text-base text-[#F2F5F9] tracking-tight group-hover:text-[#3B82F6] transition-colors">
-                {portfolioData.consultant.brandText}
+                {data.consultant.brandText}
               </span>
               <span className="text-[11px] text-[#8B97AC] hidden sm:block tracking-wide">
                 SAP PP / QM / PM Consultant
@@ -90,6 +91,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => 
 
           {/* Right CTA */}
           <div className="hidden sm:flex items-center gap-3">
+            <button
+              id="navbar-admin-btn"
+              onClick={openAdminModal}
+              className={`px-3 py-1.5 rounded-xl border font-semibold transition-all text-xs flex items-center gap-2 ${
+                isAdminAuthenticated
+                  ? 'bg-[#121B2E] border-emerald-500/60 text-emerald-400 shadow-sm'
+                  : 'bg-[#121B2E] border-[#D9A94E]/40 hover:border-[#D9A94E] text-[#D9A94E] hover:text-[#F2F5F9]'
+              }`}
+            >
+              <Lock className="w-3.5 h-3.5 text-[#D9A94E]" />
+              <span>Admin</span>
+              {isAdminAuthenticated && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              )}
+            </button>
             <button
               id="header-cta-talk"
               onClick={() => handleLinkClick('contact')}

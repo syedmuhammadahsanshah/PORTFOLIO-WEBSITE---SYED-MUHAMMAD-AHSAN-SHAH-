@@ -1,9 +1,10 @@
 import React from 'react';
-import { portfolioData } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
 import { Clock, Layers, Users, TrendingUp } from 'lucide-react';
 
 export const StatsSection: React.FC = () => {
-  const { statistics } = portfolioData;
+  const { data } = usePortfolio();
+  const { statistics } = data;
 
   const icons = [Clock, Layers, Users, TrendingUp];
 

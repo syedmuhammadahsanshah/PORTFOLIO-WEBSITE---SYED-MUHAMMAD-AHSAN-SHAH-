@@ -19,9 +19,12 @@ import { ContactSection } from './components/ContactSection';
 import { FinalCTA } from './components/FinalCTA';
 import { Footer } from './components/Footer';
 import { CaseStudyModal } from './components/CaseStudyModal';
+import { AdminPortalModal } from './components/AdminPortalModal';
+import { AdminFloatingButton } from './components/AdminFloatingButton';
+import { PortfolioProvider } from './context/PortfolioContext';
 import { CaseStudy } from './data/portfolioData';
 
-export default function App() {
+function PortfolioApp() {
   const [activeSection, setActiveSection] = useState<string>('home');
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<CaseStudy | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string>('pp');
@@ -148,6 +151,21 @@ export default function App() {
         onClose={() => setSelectedCaseStudy(null)}
         onContactClick={() => handleNavigate('contact')}
       />
+
+      {/* Secure Admin Portal Modal */}
+      <AdminPortalModal />
+
+      {/* Floating Admin Button */}
+      <AdminFloatingButton />
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <PortfolioProvider>
+      <PortfolioApp />
+    </PortfolioProvider>
+  );
+}
+
