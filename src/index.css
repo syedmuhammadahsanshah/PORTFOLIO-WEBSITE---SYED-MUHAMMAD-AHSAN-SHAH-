@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #0A0E1A;
+    --bg-secondary: #0D1424;
+    --card-surface: #121B2E;
+    --card-hover: #18243C;
+    --border-color: rgba(30, 44, 72, 0.6);
+    --border-highlight: rgba(59, 130, 246, 0.4);
+    --text-primary: #F2F5F9;
+    --text-secondary: #C4CCDA;
+    --text-muted: #8B97AC;
+    --accent-blue: #3B82F6;
+    --strong-blue: #2F6FED;
+    --accent-gold: #D9A94E;
+  }
+
+  body {
+    background-color: #0A0E1A;
+    color: #F2F5F9;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  }
+
+  .font-mono-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom subtle enterprise grid background */
+.bg-enterprise-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+}
+
+.bg-radial-ambient {
+  background: radial-gradient(circle 800px at 50% -100px, rgba(47, 111, 237, 0.12), transparent);
+}
+
+.bg-radial-accent {
+  background: radial-gradient(circle 600px at 80% 200px, rgba(217, 169, 78, 0.05), transparent);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0E1A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E2C48;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2F6FED;
+}
+
+/* Marquee infinite scroll */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
