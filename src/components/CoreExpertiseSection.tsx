@@ -1,6 +1,7 @@
 import React from 'react';
-import { Factory, CheckCircle2, Wrench, ShieldCheck, ArrowRight, ArrowUpRight } from 'lucide-react';
-import { portfolioData, ExpertiseItem } from '../data/portfolioData';
+import { Factory, CheckCircle2, Wrench, ShieldCheck, ArrowRight, ArrowUpRight, Cpu, Layers } from 'lucide-react';
+import { usePortfolio } from '../context/PortfolioContext';
+import { ExpertiseItem } from '../data/portfolioData';
 
 interface CoreExpertiseSectionProps {
   onSelectExpertise?: (expertiseId: string) => void;
@@ -11,7 +12,8 @@ export const CoreExpertiseSection: React.FC<CoreExpertiseSectionProps> = ({
   onSelectExpertise,
   onViewAllExpertise,
 }) => {
-  const { expertise } = portfolioData;
+  const { data } = usePortfolio();
+  const { expertise } = data;
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -23,8 +25,10 @@ export const CoreExpertiseSection: React.FC<CoreExpertiseSectionProps> = ({
         return <Wrench className="w-6 h-6 text-[#3B82F6]" />;
       case 'ShieldCheck':
         return <ShieldCheck className="w-6 h-6 text-[#D9A94E]" />;
+      case 'Cpu':
+        return <Cpu className="w-6 h-6 text-[#3B82F6]" />;
       default:
-        return <Factory className="w-6 h-6 text-[#3B82F6]" />;
+        return <Layers className="w-6 h-6 text-[#3B82F6]" />;
     }
   };
 

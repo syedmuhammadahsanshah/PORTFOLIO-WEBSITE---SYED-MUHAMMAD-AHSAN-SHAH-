@@ -1,3 +1,6 @@
+import { PortfolioThemeData, CustomThemeConfig } from '../utils/themeManager';
+export type { PortfolioThemeData, CustomThemeConfig };
+
 export interface StatItem {
   value: string;
   label: string;
@@ -33,11 +36,13 @@ export interface CaseStudy {
 }
 
 export interface TimelineItemData {
-  year: string;
+  year?: string;
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
   role: string;
   company: string;
   description: string;
-  isCurrent?: boolean;
   keyHighlights?: string[];
 }
 
@@ -68,6 +73,48 @@ export interface TestimonialItem {
   quote: string;
 }
 
+export interface SocialLinkItem {
+  id: string;
+  name: string;
+  icon: string;
+  url: string;
+}
+
+export interface InquiryItem {
+  id: string;
+  name: string;
+  email: string;
+  company?: string;
+  module: string;
+  message: string;
+  createdAt: string;
+  status: 'new' | 'read' | 'replied' | 'archived';
+  emailDeliveryStatus?: 'sent' | 'pending' | 'fallback_mailto' | 'failed';
+  emailError?: string;
+}
+
+export interface EmailSettings {
+  provider: 'formsubmit' | 'web3forms' | 'custom_webhook';
+  recipientEmail?: string;
+  web3FormsAccessKey?: string;
+  webhookUrl?: string;
+}
+
+export interface EngagementStats {
+  views: number;
+  uniqueVisitors: number;
+  likes: number;
+  shares: number;
+  lastUpdated?: string;
+}
+
+export const defaultEngagementStats: EngagementStats = {
+  views: 1420,
+  uniqueVisitors: 560,
+  likes: 218,
+  shares: 47,
+};
+
 export interface PortfolioData {
   consultant: {
     name: string;
@@ -79,13 +126,17 @@ export interface PortfolioData {
     heroSummary: string;
     status: string;
     yearsOfExperience: string;
+    careerStartDate?: string;
     location: string;
+    geographicRegions?: string;
+    geographicSupport?: string;
     availability: string;
     email: string;
     phone: string;
     linkedin: string;
     pullQuote: string;
     aboutProfile: string[];
+    avatarUrl?: string;
   };
   statistics: StatItem[];
   expertise: ExpertiseItem[];
@@ -95,31 +146,81 @@ export interface PortfolioData {
   certifications: CertificationItem[];
   testimonials: TestimonialItem[];
   industriesMarquee: string[];
+  socialLinks?: SocialLinkItem[];
+  contactModules?: string[];
+  theme?: PortfolioThemeData;
+  adminUsers?: AdminUser[];
+  emailSettings?: EmailSettings;
+  analytics?: EngagementStats;
 }
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  password: string;
+  role?: string;
+  createdAt?: string;
+}
+
+export const defaultAdminUsers: AdminUser[] = [
+  {
+    id: 'user-admin-1',
+    username: 'admin',
+    password: '12345678',
+    role: 'Lead Administrator',
+    createdAt: '2025-01-01',
+  },
+];
+
+export const defaultEmailSettings: EmailSettings = {
+  provider: 'formsubmit',
+};
+
+export const defaultThemeData: PortfolioThemeData = {
+  activeThemeId: 'navy-gold',
+  customTheme: {
+    bgPrimary: '#0A0E1A',
+    accentPrimary: '#2F6FED',
+    accentSecondary: '#D9A94E',
+  },
+};
+
+export const defaultContactModules: string[] = [
+  'PP (Production Planning)',
+  'QM (Quality Management)',
+  'PM (Plant Maintenance)',
+  'Full PP / QM / PM Program',
+  'IT Systems & M365 Administration',
+  'Other / Not Sure Yet',
+];
 
 export const portfolioData: PortfolioData = {
   consultant: {
-    name: "Syed Muhammad Ahsan Shah",
+    name: "Syed M. Ahsan Shah",
     brandInitials: "SS",
     brandText: "Syed M. Ahsan Shah",
     eyebrow: "SAP CERTIFIED CONSULTANT",
     title: "Senior SAP PP / QM / PM Functional Consultant & IT Systems Lead",
-    tagline: "Turning complex manufacturing operations into streamlined, SAP-driven processes.",
-    heroSummary: "Turning complex manufacturing operations into streamlined, SAP-driven processes — across 12+ years, 3+ full-cycle implementations, and multi-plant environments in Pakistan & Saudi Arabia.",
+    tagline: "Turning complex manufacturing operations into <strong>streamlined, SAP-driven processes</strong> — across {{TOTAL_YEARS_PLUS}} years, 3 full-cycle implementations, and multi-plant environments in Pakistan &amp; Saudi Arabia.",
+    heroSummary: "Turning complex manufacturing operations into <strong>streamlined, SAP-driven processes</strong> — across {{TOTAL_YEARS_PLUS}} years, 3 full-cycle implementations, and multi-plant environments in Pakistan &amp; Saudi Arabia.",
     status: "Available for Engagements",
-    yearsOfExperience: "12+ Years",
-    location: "Karachi, Pakistan",
+    yearsOfExperience: "{{TOTAL_YEARS_PLUS}} Years",
+    careerStartDate: "2013-01",
+    location: "Pakistan · Saudi Arabia · UAE",
+    geographicRegions: "Pakistan · Saudi Arabia · UAE",
+    geographicSupport: "Remote & On-Site Support across All Regions",
     availability: "Available for remote & on-site engagements",
     email: "smahsan52@hotmail.com",
     phone: "+92 300 2711390",
     linkedin: "https://linkedin.com/in/smahsan52",
-    pullQuote: "Turning complex manufacturing operations into streamlined, SAP-driven processes.",
+    pullQuote: "Turning complex manufacturing operations into <strong>streamlined, SAP-driven processes</strong> across {{TOTAL_YEARS_PLUS}} years.",
     aboutProfile: [
-      "I'm a SAP Certified Senior Functional Consultant with 12+ years of overall experience, including experience in SAP consulting roles and advanced SAP power-user experience in manufacturing operations across multiple industries. I specialize in SAP PP, with strong cross-module expertise in QM and PM — which lets me support production, quality, and maintenance processes end-to-end rather than in isolation.",
-      "I've delivered end-to-end SAP S/4HANA and ECC implementations for PP/QM/PM across multi-plant environments in Pakistan and Saudi Arabia — leading blueprinting, UAT, data migration, cutover, and go-live support for 3+ successful implementations.",
+      "I'm a SAP Certified Senior Functional Consultant with <strong>{{TOTAL_DURATION_SPELLED}}</strong> of overall experience across manufacturing operations and consulting engagements. I specialize in SAP PP alongside deep hands-on expertise in QM and PM, allowing me to support production, quality, and maintenance workflows as one connected system rather than separate silos.",
+      "I've delivered end-to-end SAP S/4HANA and ECC implementations for PP, QM, and PM across multi-plant facilities in Pakistan and Saudi Arabia. My experience covers the entire project lifecycle, from initial blueprinting and configuration to UAT, data migration, cutover, and post-go-live stabilization.",
       "That work improved production planning efficiency by 15–20% and supported 500+ users, while strengthening configuration expertise across MRP scenarios (MTS/MTO), BOM, Routing, Production Versions, QM inspection plans and usage decisions, and PM functional locations, equipment, and preventive maintenance planning.",
-      "Beyond SAP, I bring hands-on IT systems and power-user support experience — Microsoft 365 administration, end-user training and support, hardware/software troubleshooting, and Windows environment management."
-    ]
+      "Beyond SAP configuration, I manage core IT systems and user support, including Microsoft 365 administration, structured end-user training, infrastructure troubleshooting, and Windows environment maintenance."
+    ],
+    avatarUrl: ""
   },
   statistics: [
     {
@@ -153,7 +254,7 @@ export const portfolioData: PortfolioData = {
       iconName: "Factory",
       deliverables: [
         "Production Orders & Process Orders configuration",
-        "Material Requirements Planning (MRP) — MTS and MTO",
+        "Material Requirements Planning (MRP for MTS & MTO)",
         "Bills of Materials (BOM) & Routing Master Data",
         "Production Versions & Work Center Capacity Planning",
         "Planning Support & Day-to-Day Troubleshooting",
@@ -412,10 +513,12 @@ export const portfolioData: PortfolioData = {
   ],
   timeline: [
     {
-      year: "Since June 2022",
+      year: "Jun 2022 - Present",
+      startDate: "2022-06",
+      endDate: "",
+      isCurrent: true,
       role: "SAP PP, QM, PM Consultant & IT Lead",
       company: "QBS CO (Pvt) Ltd",
-      isCurrent: true,
       description: "Full-cycle SAP implementations and operational support across multi-plant environments in Pakistan and Saudi Arabia, alongside IT systems and Microsoft 365 administration.",
       keyHighlights: [
         "Leading PP, QM, and PM consulting engagements across multi-plant manufacturing clients",
@@ -424,7 +527,10 @@ export const portfolioData: PortfolioData = {
       ]
     },
     {
-      year: "2020",
+      year: "Jan 2020 - May 2022",
+      startDate: "2020-01",
+      endDate: "2022-05",
+      isCurrent: false,
       role: "Senior Executive Officer",
       company: "Feroze1888 Mills",
       description: "SAP Printing Module leadership, configuration and process ownership in a high-volume manufacturing environment.",
@@ -434,7 +540,10 @@ export const portfolioData: PortfolioData = {
       ]
     },
     {
-      year: "2018",
+      year: "Mar 2018 - Dec 2019",
+      startDate: "2018-03",
+      endDate: "2019-12",
+      isCurrent: false,
       role: "Planning Executive",
       company: "United Towel Exporters",
       description: "End-to-end ownership of SAP PP and MM, connecting planning and materials processes.",
@@ -444,7 +553,10 @@ export const portfolioData: PortfolioData = {
       ]
     },
     {
-      year: "2017",
+      year: "Jan 2017 - Feb 2018",
+      startDate: "2017-01",
+      endDate: "2018-02",
+      isCurrent: false,
       role: "Senior SAP Executive & Planning Executive",
       company: "International Textile Limited",
       description: "Dual planning and SAP role with deeper production planning and system ownership responsibilities.",
@@ -454,7 +566,10 @@ export const portfolioData: PortfolioData = {
       ]
     },
     {
-      year: "2014",
+      year: "Jun 2014 - Dec 2016",
+      startDate: "2014-06",
+      endDate: "2016-12",
+      isCurrent: false,
       role: "Data Entry Operator",
       company: "Midas Safety",
       description: "First hands-on SAP exposure, including Process Orders and Production Versions.",
@@ -464,7 +579,10 @@ export const portfolioData: PortfolioData = {
       ]
     },
     {
-      year: "2013",
+      year: "Jan 2013 - May 2014",
+      startDate: "2013-01",
+      endDate: "2014-05",
+      isCurrent: false,
       role: "Lab Assistant",
       company: "Clariant Chemical Pakistan",
       description: "Started career on the operational side of manufacturing, gaining hands-on exposure to plant processes and quality control.",
@@ -515,7 +633,7 @@ export const portfolioData: PortfolioData = {
   certifications: [
     {
       id: "sap-s4hana-pp",
-      name: "SAP Certified Associate — SAP S/4HANA Cloud Private Edition, Production Planning and Manufacturing",
+      name: "SAP Certified Associate: SAP S/4HANA Cloud Private Edition, Production Planning and Manufacturing",
       issuer: "SAP",
       badgeCode: "S/4HANA PP",
       status: "Verified & Active",
@@ -558,5 +676,108 @@ export const portfolioData: PortfolioData = {
     "Chemical Processing",
     "Water & Infrastructure Utilities",
     "Paper & Packaging Industries"
-  ]
+  ],
+  socialLinks: [
+    {
+      id: "social-1",
+      name: "LinkedIn",
+      icon: "linkedin",
+      url: "https://linkedin.com/in/smahsan52"
+    },
+    {
+      id: "social-2",
+      name: "WhatsApp",
+      icon: "whatsapp",
+      url: "+92 300 2711390"
+    },
+    {
+      id: "social-3",
+      name: "Email",
+      icon: "email",
+      url: "smahsan52@hotmail.com"
+    },
+    {
+      id: "social-4",
+      name: "Phone",
+      icon: "phone",
+      url: "+92 300 2711390"
+    },
+    {
+      id: "social-5",
+      name: "Microsoft Teams",
+      icon: "teams",
+      url: "https://teams.microsoft.com"
+    },
+    {
+      id: "social-6",
+      name: "Google Meet",
+      icon: "meet",
+      url: "https://meet.google.com"
+    },
+    {
+      id: "social-7",
+      name: "Zoom",
+      icon: "zoom",
+      url: "https://zoom.us"
+    },
+    {
+      id: "social-8",
+      name: "Facebook",
+      icon: "facebook",
+      url: "https://facebook.com"
+    },
+    {
+      id: "social-9",
+      name: "Instagram",
+      icon: "instagram",
+      url: "https://instagram.com"
+    },
+    {
+      id: "social-10",
+      name: "TikTok",
+      icon: "tiktok",
+      url: "https://tiktok.com"
+    },
+    {
+      id: "social-11",
+      name: "YouTube",
+      icon: "youtube",
+      url: "https://youtube.com"
+    },
+    {
+      id: "social-12",
+      name: "Twitter / X",
+      icon: "twitter",
+      url: "https://x.com"
+    },
+    {
+      id: "social-13",
+      name: "Calendly",
+      icon: "calendly",
+      url: "https://calendly.com"
+    },
+    {
+      id: "social-14",
+      name: "Telegram",
+      icon: "telegram",
+      url: "https://t.me"
+    },
+    {
+      id: "social-15",
+      name: "Skype",
+      icon: "skype",
+      url: "skype:live:smahsan52?chat"
+    },
+    {
+      id: "social-16",
+      name: "GitHub",
+      icon: "github",
+      url: "https://github.com"
+    }
+  ],
+  contactModules: defaultContactModules,
+  theme: defaultThemeData,
+  adminUsers: defaultAdminUsers,
+  emailSettings: defaultEmailSettings,
+  analytics: defaultEngagementStats
 };

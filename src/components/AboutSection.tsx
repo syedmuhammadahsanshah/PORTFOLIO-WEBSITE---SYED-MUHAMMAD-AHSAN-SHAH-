@@ -1,6 +1,8 @@
 import React from 'react';
 import { Quote, CheckCircle, Briefcase, Calendar, Award, ArrowUpRight, ShieldCheck, Factory, Cpu, Layers } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
+import { getLinkedInDateInfo, getTotalCareerExperience, formatExperienceText } from '../utils/dateUtils';
+import { FormattedText } from './FormattedText';
 
 interface AboutSectionProps {
   onNavigate: (sectionId: string) => void;
@@ -9,6 +11,8 @@ interface AboutSectionProps {
 export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
   const { data } = usePortfolio();
   const { consultant, timeline, skills } = data;
+
+  const totalExp = getTotalCareerExperience(consultant.careerStartDate, timeline);
 
   return (
     <section id="about-section" className="py-20 bg-[#0A0E1A] relative">
@@ -20,10 +24,10 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             <span>BACKGROUND & PERSPECTIVE</span>
           </div>
           <h2 className="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-[#F2F5F9] tracking-tight">
-            12+ Years Bridging Manufacturing & SAP
+            {totalExp.yearsPlusText} Bridging Manufacturing & SAP
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#C4CCDA] leading-relaxed">
-            From the shop floor to the SAP project team — the path, the numbers, and the skills behind the consultant.
+            From the shop floor to the SAP project team: my background, track record, and hands-on consulting experience.
           </p>
         </div>
 
@@ -37,8 +41,17 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </h3>
 
             {consultant.aboutProfile.map((paragraph, idx) => (
-              <p key={idx} className="text-[#C4CCDA] leading-relaxed font-normal">
-                {paragraph}
+              <p
+                key={idx}
+                id={idx === 0 ? 'about-bio-lead-paragraph' : `about-bio-paragraph-${idx}`}
+                className="text-[#C4CCDA] leading-relaxed font-normal"
+              >
+                <FormattedText
+                  text={paragraph}
+                  careerStartDate={consultant.careerStartDate}
+                  timeline={timeline}
+                  boldClassName="font-semibold text-[#F2F5F9]"
+                />
               </p>
             ))}
 
@@ -61,11 +74,27 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             <div className="p-8 rounded-3xl bg-[#121B2E] border border-[#1E2C48] relative overflow-hidden shadow-xl">
               <Quote className="w-10 h-10 text-[#D9A94E]/25 mb-4" />
               <blockquote className="font-heading font-semibold text-lg sm:text-xl text-[#F2F5F9] leading-snug tracking-tight">
-                “{consultant.pullQuote}”
+                “<FormattedText text={consultant.pullQuote} careerStartDate={consultant.careerStartDate} timeline={timeline} />”
               </blockquote>
               <div className="mt-6 pt-4 border-t border-[#1E2C48] flex items-center justify-between text-xs text-[#8B97AC]">
-                <span className="font-medium text-[#D9A94E]">Guiding Philosophy</span>
-                <span>Multi-Plant S/4HANA</span>
+                <div className="flex items-center gap-2.5">
+                  {consultant.avatarUrl ? (
+                    <img
+                      src={consultant.avatarUrl}
+                      alt={consultant.name}
+                      className="w-7 h-7 rounded-lg object-cover border border-[#2F6FED]/40"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-lg bg-[#0A0E1A] border border-[#2F6FED]/30 flex items-center justify-center font-mono font-bold text-[10px] text-[#F2F5F9]">
+                      {consultant.brandInitials}
+                    </div>
+                  )}
+                  <div>
+                    <div className="font-semibold text-[#F2F5F9] text-xs">{consultant.name}</div>
+                    <div className="font-medium text-[#D9A94E] text-[10px]">Guiding Philosophy</div>
+                  </div>
+                </div>
+                <span className="font-mono text-[11px]">Multi-Plant S/4HANA</span>
               </div>
             </div>
 
@@ -156,89 +185,107 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
               Career Timeline & Milestones
             </h3>
             <p className="text-xs sm:text-sm text-[#8B97AC] mt-1">
-              A 12+ year journey from chemical plant lab operations and shop-floor SAP data entry to multi-plant S/4HANA functional consulting and IT systems leadership.
+              {formatExperienceText("A 12+ year journey from chemical plant lab operations and shop-floor SAP data entry to multi-plant S/4HANA functional consulting and IT systems leadership.", consultant.careerStartDate, timeline)}
             </p>
           </div>
 
           {/* Vertical Timeline */}
-          <div className="relative pl-6 sm:pl-10 space-y-10 before:absolute before:left-[11px] sm:before:left-[19px] before:top-3 before:bottom-3 before:w-[2px] before:bg-gradient-to-b before:from-[#3B82F6] before:via-[#1E2C48] before:to-[#1E2C48]">
-            {timeline.map((item, idx) => (
-              <div
-                key={`${item.year}-${item.company}`}
-                id={`timeline-item-${idx}`}
-                className={`relative group ${item.isCurrent ? 'opacity-100' : 'opacity-90 hover:opacity-100 transition-opacity'}`}
-              >
-                {/* Node indicator */}
+          <div className="relative pl-6 sm:pl-10 space-y-10 before:absolute before:left-[11px] sm:before:left-[19px] before:top-3 before:bottom-3 before:w-[2px] before:bg-gradient-to-b before:from-[#10B981] before:via-[#1E2C48] before:to-[#1E2C48]">
+            {timeline.map((item, idx) => {
+              const isCurrentRole = Boolean(item.isCurrent);
+              const dateInfo = getLinkedInDateInfo(item.startDate, item.endDate, item.isCurrent, item.year);
+
+              return (
                 <div
-                  className={`absolute -left-[30px] sm:-left-[41px] top-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    item.isCurrent
-                      ? 'bg-[#2F6FED] border-[#D9A94E] shadow-lg shadow-[#2F6FED]/50'
-                      : 'bg-[#0A0E1A] border-[#1E2C48] group-hover:border-[#3B82F6]'
-                  }`}
+                  key={`${item.year || ''}-${item.startDate || ''}-${item.company}-${idx}`}
+                  id={`timeline-item-${idx}`}
+                  className={`relative group ${isCurrentRole ? 'opacity-100' : 'opacity-90 hover:opacity-100 transition-opacity'}`}
                 >
+                  {/* Node indicator */}
                   <div
-                    className={`w-2 h-2 rounded-full ${
-                      item.isCurrent ? 'bg-[#F2F5F9]' : 'bg-[#8B97AC] group-hover:bg-[#3B82F6]'
+                    className={`absolute -left-[30px] sm:-left-[41px] top-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-transform group-hover:scale-110 ${
+                      isCurrentRole
+                        ? 'bg-[#10B981] border-[#34D399] shadow-lg shadow-[#10B981]/50 scale-110 animate-pulse'
+                        : 'bg-[#0A0E1A] border-[#1E2C48] group-hover:border-[#3B82F6]'
                     }`}
-                  />
-                </div>
-
-                {/* Timeline Content Card */}
-                <div
-                  className={`p-6 rounded-2xl border transition-all ${
-                    item.isCurrent
-                      ? 'bg-[#121B2E] border-[#3B82F6]/60 shadow-xl shadow-[#2F6FED]/10'
-                      : 'bg-[#0D1424] border-[#1E2C48] hover:border-[#1E2C48]'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-md ${
-                          item.isCurrent
-                            ? 'bg-[#2F6FED] text-white'
-                            : 'bg-[#121B2E] text-[#D9A94E] border border-[#1E2C48]'
-                        }`}
-                      >
-                        {item.year}
-                      </span>
-                      {item.isCurrent && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                          <span>Present Role</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="text-xs text-[#8B97AC] font-mono">
-                      {item.company}
-                    </span>
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        isCurrentRole
+                          ? 'bg-[#0A0E1A]'
+                          : 'bg-[#8B97AC] group-hover:bg-[#3B82F6]'
+                      }`}
+                    />
                   </div>
 
-                  <h4 className="font-heading font-bold text-base sm:text-lg text-[#F2F5F9]">
-                    {item.role}
-                  </h4>
-                  <div className="text-xs font-medium text-[#3B82F6] mb-2">
-                    {item.company}
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-[#C4CCDA] leading-relaxed">
-                    {item.description}
-                  </p>
-
-                  {item.keyHighlights && item.keyHighlights.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-[#1E2C48]/60 space-y-1.5">
-                      {item.keyHighlights.map((hl, hIdx) => (
-                        <div key={hIdx} className="flex items-start gap-2 text-xs text-[#8B97AC]">
-                          <CheckCircle className="w-3.5 h-3.5 text-[#3B82F6] mt-0.5 shrink-0" />
-                          <span>{hl}</span>
+                  {/* Timeline Content Card */}
+                  <div
+                    className={`p-6 rounded-2xl border transition-all duration-300 ${
+                      isCurrentRole
+                        ? 'animate-role-blink-green shadow-2xl z-10'
+                        : 'bg-[#0D1424] border-[#1E2C48] hover:border-[#1E2C48]'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* LinkedIn style Date Range & Duration Badge */}
+                        <div
+                          className={`inline-flex items-center flex-wrap gap-1.5 text-xs font-mono px-3 py-1 rounded-lg ${
+                            isCurrentRole
+                              ? 'bg-[#10B981] text-[#0A0E1A] font-bold shadow-md'
+                              : 'bg-[#121B2E] text-[#D9A94E] border border-[#1E2C48]'
+                          }`}
+                        >
+                          <Calendar className={`w-3.5 h-3.5 ${isCurrentRole ? 'text-[#0A0E1A]' : 'text-[#D9A94E]'}`} />
+                          <span className="font-semibold">{dateInfo.dateRangeText}</span>
+                          {dateInfo.durationText && (
+                            <>
+                              <span className={isCurrentRole ? 'text-[#0A0E1A]/60 font-bold' : 'text-[#8B97AC]'}>·</span>
+                              <span className={`font-sans ${isCurrentRole ? 'text-[#0A0E1A] font-bold' : 'text-[#C4CCDA]'}`}>
+                                {dateInfo.durationText}
+                              </span>
+                            </>
+                          )}
                         </div>
-                      ))}
+
+                        {isCurrentRole && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#10B981]/20 border border-[#10B981]/50 text-[11px] font-semibold text-[#10B981]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-ping" />
+                            <span>Present Role</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="text-xs text-[#8B97AC] font-mono">
+                        {item.company}
+                      </span>
                     </div>
-                  )}
+
+                    <h4 className="font-heading font-bold text-base sm:text-lg text-[#F2F5F9]">
+                      {item.role}
+                    </h4>
+                    <div className="text-xs font-medium text-[#3B82F6] mb-2">
+                      {item.company}
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-[#C4CCDA] leading-relaxed">
+                      {item.description}
+                    </p>
+
+                    {item.keyHighlights && item.keyHighlights.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-[#1E2C48]/60 space-y-1.5">
+                        {item.keyHighlights.map((hl, hIdx) => (
+                          <div key={hIdx} className="flex items-start gap-2 text-xs text-[#8B97AC]">
+                            <CheckCircle className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${isCurrentRole ? 'text-[#10B981]' : 'text-[#3B82F6]'}`} />
+                            <span>{hl}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

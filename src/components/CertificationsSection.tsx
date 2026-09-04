@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Award, CheckCircle, ShieldCheck, ExternalLink, Copy, Check, FileCheck, Layers } from 'lucide-react';
-import { portfolioData } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
+import { formatExperienceText } from '../utils/dateUtils';
 
 export const CertificationsSection: React.FC = () => {
-  const { certifications } = portfolioData;
+  const { data } = usePortfolio();
+  const { certifications, consultant, timeline } = data;
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (id: string, text: string) => {
@@ -119,7 +121,7 @@ export const CertificationsSection: React.FC = () => {
                 Theory Validated by Shop-Floor Practice
               </h4>
               <p className="text-xs text-[#8B97AC] leading-relaxed">
-                Certification demonstrates mastery of the standard SAP framework, while 12+ years across manufacturing plants in Pakistan & Saudi Arabia ensures practical applicability when custom shop-floor variations occur.
+                {formatExperienceText("Certification demonstrates mastery of the standard SAP framework, while 12+ years across manufacturing plants in Pakistan & Saudi Arabia ensures practical applicability when custom shop-floor variations occur.", consultant.careerStartDate, timeline)}
               </p>
               
               <div className="pt-2 border-t border-[#1E2C48] space-y-2 text-xs text-[#C4CCDA]">

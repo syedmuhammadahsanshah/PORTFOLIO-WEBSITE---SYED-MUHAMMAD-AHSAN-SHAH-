@@ -1,6 +1,8 @@
-import React from 'react';
-import { ArrowRight, Mail, Shield, CheckCircle, Award, Database, Factory } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Mail, CheckCircle, Award, Eye } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
+import { FormattedText } from './FormattedText';
+import { LinkedInEngagementBar } from './LinkedInEngagementBar';
 
 interface HeroProps {
   onNavigate: (sectionId: string) => void;
@@ -8,7 +10,10 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   const { data } = usePortfolio();
-  const { consultant } = data;
+  const { consultant, timeline } = data;
+  const [imageError, setImageError] = useState(false);
+
+  const hasValidPhoto = Boolean(consultant.avatarUrl && consultant.avatarUrl.trim().length > 0 && !imageError);
 
   return (
     <section
@@ -24,15 +29,15 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
           
           {/* Left Column: Sophisticated Bracket-Framed Consultant Portrait Treatment */}
           <div className="lg:col-span-5 order-2 lg:order-1 flex justify-center">
-            <div className="relative w-full max-w-sm sm:max-w-md">
+            <div className="relative w-full max-w-sm sm:max-w-md aspect-square">
               {/* Outer decorative tech corners */}
-              <div className="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-[#D9A94E]" />
-              <div className="absolute -top-3 -right-3 w-6 h-6 border-t-2 border-r-2 border-[#D9A94E]" />
-              <div className="absolute -bottom-3 -left-3 w-6 h-6 border-b-2 border-l-2 border-[#D9A94E]" />
-              <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-[#D9A94E]" />
+              <div className="absolute -top-3 -left-3 w-6 h-6 border-t-2 border-l-2 border-[#D9A94E] z-20" />
+              <div className="absolute -top-3 -right-3 w-6 h-6 border-t-2 border-r-2 border-[#D9A94E] z-20" />
+              <div className="absolute -bottom-3 -left-3 w-6 h-6 border-b-2 border-l-2 border-[#D9A94E] z-20" />
+              <div className="absolute -bottom-3 -right-3 w-6 h-6 border-b-2 border-r-2 border-[#D9A94E] z-20" />
 
               {/* Status Badge floating at top */}
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30 whitespace-nowrap">
                 <div
                   id="hero-status-badge"
                   className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#121B2E] border border-[#1E2C48] shadow-lg text-[11px] font-semibold text-[#F2F5F9] tracking-wide"
@@ -45,75 +50,29 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              {/* Main Card Frame */}
-              <div className="relative rounded-2xl bg-[#0D1424] border border-[#1E2C48] p-6 shadow-2xl overflow-hidden group">
-                {/* Tech background matrix lines inside portrait card */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#121B2E] via-[#0D1424] to-[#0A0E1A] opacity-90" />
-                
-                {/* Subtle graphic representation */}
-                <div className="relative z-10 flex flex-col items-center text-center pt-4 pb-2">
-                  {/* Executive Avatar / Monogram Visual Representation */}
-                  <div className="relative mb-5">
-                    <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-2xl bg-gradient-to-br from-[#1E2C48] via-[#121B2E] to-[#0A0E1A] border-2 border-[#2F6FED]/40 p-1 flex items-center justify-center relative shadow-inner">
-                      <div className="w-full h-full rounded-xl bg-[#0A0E1A] flex flex-col items-center justify-center relative overflow-hidden">
-                        {/* Background subtle geometric rings */}
-                        <div className="absolute w-28 h-28 border border-[#2F6FED]/20 rounded-full animate-pulse" />
-                        <div className="absolute w-20 h-20 border border-[#D9A94E]/20 rounded-full" />
-                        
-                        <span className="font-heading font-extrabold text-3xl sm:text-4xl tracking-wider text-[#F2F5F9]">
-                          {consultant.brandInitials}
-                        </span>
-                        <span className="text-[10px] uppercase font-mono tracking-widest text-[#D9A94E] mt-1">
-                          SAP Lead
-                        </span>
-                      </div>
-                      
-                      {/* Certified badge icon overlay */}
-                      <div className="absolute -bottom-2 -right-2 bg-[#2F6FED] border-2 border-[#0A0E1A] w-8 h-8 rounded-full flex items-center justify-center shadow-md">
-                        <Award className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Name & Quick Meta */}
-                  <h3 className="font-heading font-bold text-lg text-[#F2F5F9] tracking-tight">
-                    {consultant.name}
-                  </h3>
-                  <p className="text-xs text-[#8B97AC] mt-1 font-medium">
-                    {consultant.location}
-                  </p>
-
-                  {/* Core Domain Chips */}
-                  <div className="grid grid-cols-3 gap-2 w-full mt-5 pt-4 border-t border-[#1E2C48]">
-                    <div className="p-2 rounded-lg bg-[#121B2E]/80 border border-[#1E2C48]/60 text-center">
-                      <div className="text-[10px] text-[#8B97AC] uppercase tracking-wider font-mono">Module</div>
-                      <div className="text-xs font-bold text-[#3B82F6] mt-0.5">SAP PP</div>
-                    </div>
-                    <div className="p-2 rounded-lg bg-[#121B2E]/80 border border-[#1E2C48]/60 text-center">
-                      <div className="text-[10px] text-[#8B97AC] uppercase tracking-wider font-mono">Module</div>
-                      <div className="text-xs font-bold text-[#D9A94E] mt-0.5">SAP QM</div>
-                    </div>
-                    <div className="p-2 rounded-lg bg-[#121B2E]/80 border border-[#1E2C48]/60 text-center">
-                      <div className="text-[10px] text-[#8B97AC] uppercase tracking-wider font-mono">Module</div>
-                      <div className="text-xs font-bold text-[#3B82F6] mt-0.5">SAP PM</div>
-                    </div>
-                  </div>
-
-                  {/* Operational Badge */}
-                  <div className="w-full mt-3 p-2.5 rounded-lg bg-[#121B2E]/40 border border-[#1E2C48]/40 flex items-center justify-between text-[11px] text-[#C4CCDA]">
-                    <span className="flex items-center gap-1.5 text-left">
-                      <Factory className="w-3.5 h-3.5 text-[#3B82F6]" />
-                      <span>Manufacturing & Shop-Floor Depth</span>
+              {/* Main Card Frame - Picture fills the whole square */}
+              <div className="relative w-full h-full rounded-2xl bg-[#0D1424] border border-[#1E2C48] shadow-2xl overflow-hidden group">
+                {hasValidPhoto ? (
+                  <img
+                    src={consultant.avatarUrl}
+                    alt={consultant.name}
+                    onError={() => setImageError(true)}
+                    className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center relative bg-gradient-to-br from-[#1E2C48] via-[#121B2E] to-[#0A0E1A] p-6 text-center">
+                    {/* Background subtle geometric rings */}
+                    <div className="absolute w-44 h-44 border border-[#2F6FED]/20 rounded-full animate-pulse" />
+                    <div className="absolute w-32 h-32 border border-[#D9A94E]/20 rounded-full" />
+                    
+                    <span className="font-heading font-extrabold text-5xl sm:text-6xl tracking-wider text-[#F2F5F9] relative z-10">
+                      {consultant.brandInitials}
                     </span>
-                    <span className="font-mono text-[10px] text-[#D9A94E]">12+ Yrs</span>
+                    <span className="text-xs uppercase font-mono tracking-widest text-[#D9A94E] mt-3 relative z-10 font-semibold">
+                      SAP Lead & Consultant
+                    </span>
                   </div>
-                </div>
-              </div>
-
-              {/* Bottom decorative bracket note */}
-              <div className="mt-3 flex items-center justify-between text-[10px] text-[#8B97AC] font-mono px-2">
-                <span>[ SAP S/4HANA & ECC ]</span>
-                <span>[ M365 ADMIN ]</span>
+                )}
               </div>
             </div>
           </div>
@@ -139,10 +98,14 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
               </h2>
             </div>
 
-            {/* Supporting Text */}
-            <p className="text-sm sm:text-base md:text-lg text-[#C4CCDA] leading-relaxed max-w-2xl font-normal">
-              {consultant.heroSummary}
-            </p>
+            {/* Supporting Text / Tagline */}
+            <div id="hero-summary-paragraph" className="text-sm sm:text-base md:text-lg text-[#C4CCDA] leading-relaxed max-w-2xl font-normal">
+              <FormattedText
+                text={consultant.tagline || consultant.heroSummary}
+                careerStartDate={consultant.careerStartDate}
+                timeline={timeline}
+              />
+            </div>
 
             {/* Key Value Pillars Bullets */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 text-xs sm:text-sm text-[#C4CCDA]">
@@ -183,6 +146,11 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
                 <Mail className="w-4 h-4 text-[#8B97AC]" />
                 <span>Get In Touch</span>
               </button>
+            </div>
+
+            {/* LinkedIn-Style Engagement & Live Portfolio Reviews Bar */}
+            <div className="pt-3">
+              <LinkedInEngagementBar onNavigate={onNavigate} />
             </div>
 
           </div>

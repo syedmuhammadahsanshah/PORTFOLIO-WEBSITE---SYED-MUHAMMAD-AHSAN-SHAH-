@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Factory, CheckCircle2, Wrench, ShieldCheck, Check, ArrowRight, Layers, FileSpreadsheet, Cpu, Settings } from 'lucide-react';
-import { portfolioData, ExpertiseItem } from '../data/portfolioData';
+import { usePortfolio } from '../context/PortfolioContext';
+import { ExpertiseItem } from '../data/portfolioData';
 
 interface ServicesPageSectionProps {
   onNavigate: (sectionId: string) => void;
@@ -11,8 +12,9 @@ export const ServicesPageSection: React.FC<ServicesPageSectionProps> = ({
   onNavigate,
   selectedServiceId,
 }) => {
-  const { expertise } = portfolioData;
-  const [activeTab, setActiveTab] = useState<string>(selectedServiceId || 'pp');
+  const { data } = usePortfolio();
+  const { expertise } = data;
+  const [activeTab, setActiveTab] = useState<string>(selectedServiceId || (expertise[0]?.id ?? 'pp'));
 
   const activeService = expertise.find((e) => e.id === activeTab) || expertise[0];
 

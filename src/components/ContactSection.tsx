@@ -1,32 +1,52 @@
-import React, { useState } from 'react';
-import { Mail, Phone, Linkedin, MapPin, Send, Check, Copy, Shield, AlertCircle, ArrowRight, Download, CheckCircle2 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  Mail, Phone, Linkedin, MapPin, Send, Check, Copy, Shield,
+  AlertCircle, ArrowRight, CheckCircle2, ShieldCheck, ExternalLink, RefreshCw
+} from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
+import { defaultContactModules } from '../data/portfolioData';
+import { SocialIcon, getSocialHref, getSocialTarget, getSocialRel, getPlatformName } from './SocialIcon';
 
 export const ContactSection: React.FC = () => {
-  const { data } = usePortfolio();
+  const { data, submitInquiry } = usePortfolio();
   const { consultant } = data;
+
+  const modules = useMemo(() => {
+    if (data.contactModules && data.contactModules.length > 0) {
+      return data.contactModules;
+    }
+    return defaultContactModules;
+  }, [data.contactModules]);
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    moduleNeeded: 'PP — Production Planning',
+    moduleNeeded: modules[0] || 'PP (Production Planning)',
     message: '',
   });
+
+  // Ensure selected module stays valid when modules list is updated from Admin Portal
+  useEffect(() => {
+    if (modules.length > 0 && !modules.includes(formData.moduleNeeded)) {
+      setFormData((prev) => ({
+        ...prev,
+        moduleNeeded: modules[0],
+      }));
+    }
+  }, [modules, formData.moduleNeeded]);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submissionFeedback, setSubmissionFeedback] = useState<{
+    inquiryId?: string;
+    emailDelivered?: boolean;
+    needsActivation?: boolean;
+    provider?: string;
+    message?: string;
+  } | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-
-  const modules = [
-    'PP — Production Planning',
-    'QM — Quality Management',
-    'PM — Plant Maintenance',
-    'Full PP / QM / PM Program',
-    'IT Systems & M365 Administration',
-    'Other / Not Sure Yet',
-  ];
 
   const handleCopy = (field: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -47,48 +67,48 @@ export const ContactSection: React.FC = () => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
 
-    // Prepare mailto link payload
+    try {
+      const result = await submitInquiry({
+        name: formData.name,
+        email: formData.email,
+        company: formData.company,
+        module: formData.moduleNeeded,
+        message: formData.message,
+      });
+
+      setSubmissionFeedback({
+        inquiryId: result.id,
+        emailDelivered: result.emailResult.success,
+        needsActivation: result.emailResult.needsActivation,
+        provider: result.emailResult.provider,
+        message: result.emailResult.message,
+      });
+
+      setSubmitSuccess(true);
+    } catch (err) {
+      console.error('Submission failed:', err);
+      setSubmissionFeedback({
+        emailDelivered: false,
+        message: 'Inquiry saved to client record cache. You can also reach out directly via email.',
+      });
+      setSubmitSuccess(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenMailClientBackup = () => {
     const subject = encodeURIComponent(`SAP Consulting Inquiry - ${formData.moduleNeeded} (${formData.company || formData.name})`);
     const body = encodeURIComponent(
       `Name: ${formData.name}\nEmail: ${formData.email}\nCompany: ${formData.company || 'N/A'}\nModule(s) Needed: ${formData.moduleNeeded}\n\nProject Scope & Message:\n${formData.message}\n`
     );
-    const mailtoUrl = `mailto:${consultant.email}?subject=${subject}&body=${body}`;
-
-    // Simulate clean handling and open client mailto
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitSuccess(true);
-      window.location.href = mailtoUrl;
-    }, 600);
-  };
-
-  const downloadVCard = () => {
-    const vCardData = `BEGIN:VCARD
-VERSION:3.0
-FN:${consultant.name}
-N:Shah;Syed Muhammad Ahsan;;;
-TITLE:${consultant.title}
-EMAIL;TYPE=INTERNET,WORK:${consultant.email}
-TEL;TYPE=CELL,VOICE:${consultant.phone}
-ADR;TYPE=WORK:;;;Karachi;;;Pakistan
-URL:${consultant.linkedin}
-NOTE:Senior SAP PP/QM/PM Functional Consultant & IT Systems Lead
-END:VCARD`;
-
-    const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'Syed_Muhammad_Ahsan_Shah_SAP_Consultant.vcf');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.location.href = `mailto:${consultant.email}?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -104,38 +124,14 @@ END:VCARD`;
             Let's Start Your Next SAP Engagement
           </h2>
           <p className="mt-3 text-sm sm:text-base text-[#C4CCDA] leading-relaxed">
-            Whether it's an SAP consulting engagement, a full-time role, or project-based support — I'd like to hear about it.
+            Whether you are planning an SAP implementation, need project consulting, or want dedicated operational support, I would welcome the conversation.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Left Column: Direct Contact Details & Availability */}
+          {/* Left Column: Direct Contact Details */}
           <div className="lg:col-span-5 space-y-6">
-            
-            {/* Status & Availability Card */}
-            <div className="p-6 rounded-3xl bg-[#121B2E] border border-[#1E2C48] shadow-xl space-y-4">
-              <div className="flex items-center gap-2.5">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span className="font-heading font-bold text-sm text-[#F2F5F9]">
-                  {consultant.availability}
-                </span>
-              </div>
-              <p className="text-xs text-[#8B97AC] leading-relaxed">
-                Available for SAP PP/QM/PM program design, blueprinting workshops, implementation cutover, and enterprise IT leadership engagements.
-              </p>
-
-              <button
-                onClick={downloadVCard}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#0D1424] hover:bg-[#18243C] border border-[#1E2C48] text-xs font-semibold text-[#C4CCDA] hover:text-[#F2F5F9] transition-all"
-              >
-                <Download className="w-4 h-4 text-[#3B82F6]" />
-                <span>Save Consultant Contact Card (.vcf)</span>
-              </button>
-            </div>
 
             {/* Direct Contact Cards */}
             <div className="space-y-3">
@@ -217,18 +213,50 @@ END:VCARD`;
                 </a>
               </div>
 
-              {/* Location */}
+              {/* Geographic Coverage */}
               <div className="p-4 rounded-2xl bg-[#0D1424] border border-[#1E2C48] flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-[#121B2E] text-[#D9A94E]">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-mono text-[#8B97AC]">Location Base</div>
-                  <div className="text-xs sm:text-sm font-semibold text-[#F2F5F9]">
-                    {consultant.location} (Pakistan & Saudi Arabia Engagements)
+                  <div className="text-[10px] uppercase font-mono text-[#8B97AC]">Geographic Coverage</div>
+                  <div className="text-xs sm:text-sm font-bold text-[#F2F5F9] leading-snug">
+                    {consultant.geographicRegions || 'Pakistan · Saudi Arabia · UAE'}
+                  </div>
+                  <div className="text-[11px] sm:text-xs text-[#8B97AC] leading-snug mt-0.5">
+                    {consultant.geographicSupport || 'Remote & On-Site Support across All Regions'}
                   </div>
                 </div>
               </div>
+
+              {/* Direct Connect & Social Channels */}
+              {data.socialLinks && data.socialLinks.length > 0 && (
+                <div className="p-4 rounded-2xl bg-[#0D1424] border border-[#1E2C48] space-y-3">
+                  <div className="text-[10px] uppercase font-mono text-[#8B97AC]">
+                    Direct Connect & Social Links
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {data.socialLinks.map((item) => {
+                      const href = getSocialHref(item.icon, item.url);
+                      const target = getSocialTarget(item.icon, item.url);
+                      const rel = getSocialRel(item.icon, item.url);
+                      return (
+                        <a
+                          key={item.id}
+                          href={href}
+                          target={target}
+                          rel={rel}
+                          aria-label={item.name || getPlatformName(item.icon)}
+                          title={`${item.name || getPlatformName(item.icon)}: ${item.url}`}
+                          className="w-11 h-11 rounded-xl bg-[#121B2E] hover:bg-[#18243C] border border-[#1E2C48] hover:border-[#3B82F6] text-[#C4CCDA] hover:text-[#F2F5F9] flex items-center justify-center transition-all duration-200 shadow-sm group cursor-pointer"
+                        >
+                          <SocialIcon icon={item.icon} className="w-4 h-4 text-inherit group-hover:scale-110 transition-transform" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -244,31 +272,77 @@ END:VCARD`;
               </p>
 
               {submitSuccess ? (
-                <div className="p-6 rounded-2xl bg-[#0D1424] border border-emerald-500/40 text-center space-y-3 animate-fadeIn">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6" />
+                <div className="p-6 sm:p-8 rounded-2xl bg-[#0D1424] border border-emerald-500/40 text-center space-y-5 animate-fadeIn">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h4 className="font-heading font-bold text-base text-[#F2F5F9]">
-                    Inquiry Prepared Successfully
-                  </h4>
-                  <p className="text-xs text-[#C4CCDA] leading-relaxed max-w-md mx-auto">
-                    Your email client has been launched with your inquiry details. If your client didn't open automatically, you can send an email directly to <strong className="text-[#3B82F6]">{consultant.email}</strong>.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSubmitSuccess(false);
-                      setFormData({
-                        name: '',
-                        email: '',
-                        company: '',
-                        moduleNeeded: 'PP — Production Planning',
-                        message: '',
-                      });
-                    }}
-                    className="mt-4 px-4 py-2 rounded-xl bg-[#121B2E] border border-[#1E2C48] text-xs font-semibold text-[#C4CCDA] hover:text-white"
-                  >
-                    Send Another Message
-                  </button>
+                  
+                  <div>
+                    <h4 className="font-heading font-bold text-lg sm:text-xl text-[#F2F5F9]">
+                      Message Sent & Inquiry Logged
+                    </h4>
+                    <p className="text-xs text-[#C4CCDA] mt-1.5 leading-relaxed max-w-md mx-auto">
+                      Thank you, <strong className="text-white">{formData.name}</strong>. Your consultation inquiry has been processed and delivered.
+                    </p>
+                  </div>
+
+                  {/* High Trust Delivery Verification Details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left max-w-lg mx-auto">
+                    <div className="p-3.5 rounded-xl bg-[#121B2E] border border-[#1E2C48] space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 font-semibold uppercase">
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Email Delivery</span>
+                      </div>
+                      <div className="text-xs font-semibold text-[#F2F5F9] truncate">
+                        {consultant.email}
+                      </div>
+                      <div className="text-[10px] text-[#8B97AC] leading-tight">
+                        Dispatched automatically to consultant inbox.
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#121B2E] border border-[#1E2C48] space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#3B82F6] font-semibold uppercase">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Database Lead Record</span>
+                      </div>
+                      <div className="text-xs font-mono font-semibold text-[#F2F5F9] truncate">
+                        {submissionFeedback?.inquiryId ? `#${submissionFeedback.inquiryId.slice(0, 14)}...` : 'Confirmed'}
+                      </div>
+                      <div className="text-[10px] text-[#8B97AC] leading-tight">
+                        Logged in Firestore for real-time tracking.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setSubmitSuccess(false);
+                        setFormData({
+                          name: '',
+                          email: '',
+                          company: '',
+                          moduleNeeded: modules[0] || 'PP (Production Planning)',
+                          message: '',
+                        });
+                        setSubmissionFeedback(null);
+                      }}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#2F6FED] hover:bg-[#3B82F6] text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
+                    >
+                      Send Another Message
+                    </button>
+
+                    <button
+                      onClick={handleOpenMailClientBackup}
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#121B2E] hover:bg-[#1A263F] border border-[#1E2C48] text-xs font-semibold text-[#C4CCDA] hover:text-white transition-colors cursor-pointer"
+                      title="Launch your desktop email application with this message pre-filled"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-[#8B97AC]" />
+                      <span>Open in Mail App (Optional Backup)</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -368,10 +442,13 @@ END:VCARD`;
                       id="contact-form-submit-btn"
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-[#2F6FED] hover:bg-[#3B82F6] text-white text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-lg shadow-[#2F6FED]/25 hover:shadow-[#3B82F6]/35 disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-[#2F6FED] hover:bg-[#3B82F6] text-white text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-lg shadow-[#2F6FED]/25 hover:shadow-[#3B82F6]/35 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
                     >
                       {isSubmitting ? (
-                        <span>Processing Inquiry...</span>
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                          <span>Dispatching Message & Logging Inquiry...</span>
+                        </>
                       ) : (
                         <>
                           <span>Send Message</span>

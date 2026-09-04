@@ -20,7 +20,6 @@ import { FinalCTA } from './components/FinalCTA';
 import { Footer } from './components/Footer';
 import { CaseStudyModal } from './components/CaseStudyModal';
 import { AdminPortalModal } from './components/AdminPortalModal';
-import { AdminFloatingButton } from './components/AdminFloatingButton';
 import { PortfolioProvider } from './context/PortfolioContext';
 import { CaseStudy } from './data/portfolioData';
 
@@ -154,9 +153,6 @@ function PortfolioApp() {
 
       {/* Secure Admin Portal Modal */}
       <AdminPortalModal />
-
-      {/* Floating Admin Button */}
-      <AdminFloatingButton />
     </div>
   );
 }

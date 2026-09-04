@@ -1,22 +1,28 @@
 import React from 'react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { Clock, Layers, Users, TrendingUp } from 'lucide-react';
+import { getTotalCareerExperience, formatExperienceText } from '../utils/dateUtils';
 
 export const StatsSection: React.FC = () => {
   const { data } = usePortfolio();
-  const { statistics } = data;
+  const { statistics, consultant, timeline } = data;
 
+  const totalExp = getTotalCareerExperience(consultant.careerStartDate, timeline);
   const icons = [Clock, Layers, Users, TrendingUp];
 
   return (
     <section id="stats-section" className="relative py-10 bg-[#0D1424] border-y border-[#1E2C48]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {statistics.map((stat, index) => {
             const IconComponent = icons[index % icons.length];
+            // Only dynamically calculate the value for the dedicated experience metric
+            const isExperienceStat = /experience/i.test(stat.label) || (index === 0 && /years/i.test(stat.label)) || String(stat.value).includes('{{TOTAL_YEARS_PLUS}}');
+            const displayValue = isExperienceStat ? totalExp.yearsPlus : formatExperienceText(stat.value, consultant.careerStartDate, timeline);
+
             return (
               <div
-                key={stat.label}
+                key={`${stat.label}-${index}`}
                 id={`stat-card-${index}`}
                 className="relative p-5 sm:p-6 rounded-2xl bg-[#121B2E] border border-[#1E2C48] hover:border-[#3B82F6]/50 transition-all duration-300 group shadow-lg flex flex-col justify-between"
               >
@@ -32,7 +38,7 @@ export const StatsSection: React.FC = () => {
 
                 <div>
                   <div className="font-heading font-extrabold text-2xl sm:text-3xl lg:text-4xl text-[#F2F5F9] group-hover:text-[#3B82F6] transition-colors tracking-tight">
-                    {stat.value}
+                    {displayValue}
                   </div>
                   <div className="text-xs sm:text-sm font-semibold text-[#C4CCDA] mt-1">
                     {stat.label}
@@ -57,3 +63,4 @@ export const StatsSection: React.FC = () => {
     </section>
   );
 };
+

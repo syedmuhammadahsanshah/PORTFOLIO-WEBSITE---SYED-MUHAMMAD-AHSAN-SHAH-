@@ -87,3 +87,21 @@
     animation: none;
   }
 }
+
+/* Selected role blinking indicator in emerald/green */
+@keyframes roleBlinkGreen {
+  0%, 100% {
+    border-color: rgba(16, 185, 129, 0.95);
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.5), 0 0 24px rgba(16, 185, 129, 0.4);
+    background-color: rgba(13, 30, 26, 0.95);
+  }
+  50% {
+    border-color: rgba(52, 211, 153, 0.4);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2), 0 0 10px rgba(16, 185, 129, 0.15);
+    background-color: rgba(18, 27, 46, 0.9);
+  }
+}
+
+.animate-role-blink-green {
+  animation: roleBlinkGreen 1.3s ease-in-out infinite;
+}

@@ -3,9 +3,19 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Portfolio live content document
     match /portfolio/{document=**} {
-      // Anyone can read portfolio content (public website visitors)
       allow read: if true;
-      // Anyone authenticated or updating via client app (can also be locked to auth users)
+      allow write: if true;
+    }
+
+    // Inquiries submitted by clients/visitors
+    match /inquiries/{inquiryId} {
+      allow create: if true;
+      allow read, update, delete: if true;
+    }
+
+    // Engagement and analytics (views, likes, shares)
+    match /analytics/{document=**} {
+      allow read: if true;
       allow write: if true;
     }
   }

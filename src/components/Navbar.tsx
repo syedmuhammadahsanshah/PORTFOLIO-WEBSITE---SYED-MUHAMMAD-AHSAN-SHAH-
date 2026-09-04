@@ -62,9 +62,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => 
               <span className="font-heading font-semibold text-sm sm:text-base text-[#F2F5F9] tracking-tight group-hover:text-[#3B82F6] transition-colors">
                 {data.consultant.brandText}
               </span>
-              <span className="text-[11px] text-[#8B97AC] hidden sm:block tracking-wide">
-                SAP PP / QM / PM Consultant
-              </span>
             </div>
           </button>
 

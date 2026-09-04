@@ -1,0 +1,142 @@
+{
+  "entities": {
+    "Portfolio": {
+      "title": "Portfolio",
+      "description": "Consultant portfolio live content, sections, theme, and admin users",
+      "type": "object",
+      "properties": {
+        "consultant": {
+          "type": "object",
+          "description": "Consultant profile details, name, tagline, summary, contact info"
+        },
+        "statistics": {
+          "type": "array",
+          "description": "Key statistics and metrics"
+        },
+        "expertise": {
+          "type": "array",
+          "description": "Core SAP functional and technical competencies"
+        },
+        "projects": {
+          "type": "array",
+          "description": "Consulting and implementation projects"
+        },
+        "timeline": {
+          "type": "array",
+          "description": "Career experience timeline and milestones"
+        },
+        "caseStudies": {
+          "type": "array",
+          "description": "Detailed project case studies and architectures"
+        },
+        "certifications": {
+          "type": "array",
+          "description": "Professional SAP and industry certifications"
+        },
+        "testimonials": {
+          "type": "array",
+          "description": "Client recommendations and testimonials"
+        },
+        "industries": {
+          "type": "array",
+          "description": "Ticker of covered manufacturing and process industries"
+        },
+        "socialLinks": {
+          "type": "array",
+          "description": "Social media profiles and contact links"
+        },
+        "contactModules": {
+          "type": "array",
+          "description": "Configured contact methods and communication channels"
+        },
+        "theme": {
+          "type": "object",
+          "description": "Active portfolio theme color palette and styling variables"
+        },
+        "adminUsers": {
+          "type": "array",
+          "description": "Authorized administrator user accounts and credentials"
+        }
+      }
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Client lead contact message submitted from the portfolio website",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Sender full name"
+        },
+        "email": {
+          "type": "string",
+          "description": "Sender contact email"
+        },
+        "company": {
+          "type": "string",
+          "description": "Sender company or organization"
+        },
+        "module": {
+          "type": "string",
+          "description": "Target SAP module or consulting service needed"
+        },
+        "message": {
+          "type": "string",
+          "description": "Project scope, challenges, or inquiry message"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Submission ISO timestamp"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "read", "replied", "archived"],
+          "description": "Lead management status"
+        }
+      },
+      "required": ["name", "email", "message", "createdAt"]
+    },
+    "Analytics": {
+      "title": "Analytics",
+      "description": "Aggregated engagement and traffic statistics for the portfolio",
+      "type": "object",
+      "properties": {
+        "views": {
+          "type": "integer",
+          "description": "Total cumulative page reviews / views"
+        },
+        "uniqueVisitors": {
+          "type": "integer",
+          "description": "Estimated unique visitors"
+        },
+        "likes": {
+          "type": "integer",
+          "description": "Total LinkedIn-style endorsements/likes"
+        },
+        "shares": {
+          "type": "integer",
+          "description": "Total times portfolio was shared or reposted"
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "Last activity timestamp"
+        }
+      },
+      "required": ["views", "likes"]
+    }
+  },
+  "firestore": {
+    "/portfolio/{documentId}": {
+      "schema": "Portfolio",
+      "description": "Single-document storage for portfolio content and configuration"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Client inquiries submitted through the contact form"
+    },
+    "/analytics/{documentId}": {
+      "schema": "Analytics",
+      "description": "Live traffic and engagement counters"
+    }
+  }
+}

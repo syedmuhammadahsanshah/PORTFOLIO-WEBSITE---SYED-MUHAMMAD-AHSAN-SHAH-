@@ -26,7 +26,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onNavigate }) => {
 
           {/* Supporting text */}
           <p className="mt-4 text-sm sm:text-base text-[#C4CCDA] max-w-2xl mx-auto leading-relaxed">
-            Let's talk about your production planning, quality, or maintenance processes — and how a focused SAP engagement can move the numbers that matter to you.
+            Let's discuss your production planning, quality, or plant maintenance goals, and explore how a tailored SAP engagement can deliver measurable improvements for your team.
           </p>
 
           {/* Action Buttons */}
