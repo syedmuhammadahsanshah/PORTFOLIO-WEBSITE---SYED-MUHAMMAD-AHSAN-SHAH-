@@ -66,39 +66,37 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           </div>
 
           {/* Direct Contact (Col 9-12) */}
-          <div className="lg:col-span-4 space-y-3">
-            <h4 className="font-heading font-bold text-xs text-[#F2F5F9] uppercase tracking-wider font-mono">
-              Direct Contact
-            </h4>
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
-              {(data.socialLinks && data.socialLinks.length > 0
-                ? data.socialLinks
-                : [
-                    { id: '1', name: 'LinkedIn', icon: 'linkedin', url: consultant.linkedin },
-                    { id: '2', name: 'Email', icon: 'email', url: consultant.email },
-                    { id: '3', name: 'Phone', icon: 'phone', url: consultant.phone },
-                    { id: '4', name: 'WhatsApp', icon: 'whatsapp', url: consultant.phone },
-                  ]
-              ).map((item) => {
-                const href = getSocialHref(item.icon, item.url);
-                const target = getSocialTarget(item.icon, item.url);
-                const rel = getSocialRel(item.icon, item.url);
-                return (
-                  <a
-                    key={item.id}
-                    href={href}
-                    target={target}
-                    rel={rel}
-                    aria-label={item.name || getPlatformName(item.icon)}
-                    title={item.name || getPlatformName(item.icon)}
-                    className="w-11 h-11 rounded-xl bg-[#121B2E] hover:bg-[#18243C] border border-[#1E2C48] hover:border-[#3B82F6] text-[#C4CCDA] hover:text-[#F2F5F9] flex items-center justify-center transition-all duration-200 shadow-sm group cursor-pointer"
-                  >
-                    <SocialIcon icon={item.icon} className="w-4 h-4 text-inherit group-hover:scale-110 transition-transform" />
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+          {(() => {
+            const visibleLinks = (data.socialLinks || []).filter((item) => !item.hidden);
+            if (visibleLinks.length === 0) return null;
+            return (
+              <div className="lg:col-span-4 space-y-3">
+                <h4 className="font-heading font-bold text-xs text-[#F2F5F9] uppercase tracking-wider font-mono">
+                  Direct Contact
+                </h4>
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  {visibleLinks.map((item) => {
+                    const href = getSocialHref(item.icon, item.url);
+                    const target = getSocialTarget(item.icon, item.url);
+                    const rel = getSocialRel(item.icon, item.url);
+                    return (
+                      <a
+                        key={item.id}
+                        href={href}
+                        target={target}
+                        rel={rel}
+                        aria-label={item.name || getPlatformName(item.icon)}
+                        title={item.name || getPlatformName(item.icon)}
+                        className="w-11 h-11 rounded-xl bg-[#121B2E] hover:bg-[#18243C] border border-[#1E2C48] hover:border-[#3B82F6] text-[#C4CCDA] hover:text-[#F2F5F9] flex items-center justify-center transition-all duration-200 shadow-sm group cursor-pointer"
+                      >
+                        <SocialIcon icon={item.icon} className="w-4 h-4 text-inherit group-hover:scale-110 transition-transform" />
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
         </div>
 

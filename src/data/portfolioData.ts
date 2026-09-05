@@ -78,12 +78,14 @@ export interface SocialLinkItem {
   name: string;
   icon: string;
   url: string;
+  hidden?: boolean;
 }
 
 export interface InquiryItem {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   company?: string;
   module: string;
   message: string;
@@ -196,9 +198,9 @@ export const defaultContactModules: string[] = [
 
 export const portfolioData: PortfolioData = {
   consultant: {
-    name: "Syed M. Ahsan Shah",
+    name: "Syed Muhammad Ahsan Shah",
     brandInitials: "SS",
-    brandText: "Syed M. Ahsan Shah",
+    brandText: "Syed Muhammad Ahsan Shah",
     eyebrow: "SAP CERTIFIED CONSULTANT",
     title: "Senior SAP PP / QM / PM Functional Consultant & IT Systems Lead",
     tagline: "Turning complex manufacturing operations into <strong>streamlined, SAP-driven processes</strong> — across {{TOTAL_YEARS_PLUS}} years, 3 full-cycle implementations, and multi-plant environments in Pakistan &amp; Saudi Arabia.",
@@ -682,97 +684,29 @@ export const portfolioData: PortfolioData = {
       id: "social-1",
       name: "LinkedIn",
       icon: "linkedin",
-      url: "https://linkedin.com/in/smahsan52"
+      url: "https://linkedin.com/in/smahsan52",
+      hidden: false
     },
     {
       id: "social-2",
       name: "WhatsApp",
       icon: "whatsapp",
-      url: "+92 300 2711390"
+      url: "+92 300 2711390",
+      hidden: false
     },
     {
       id: "social-3",
       name: "Email",
       icon: "email",
-      url: "smahsan52@hotmail.com"
+      url: "smahsan52@hotmail.com",
+      hidden: false
     },
     {
       id: "social-4",
       name: "Phone",
       icon: "phone",
-      url: "+92 300 2711390"
-    },
-    {
-      id: "social-5",
-      name: "Microsoft Teams",
-      icon: "teams",
-      url: "https://teams.microsoft.com"
-    },
-    {
-      id: "social-6",
-      name: "Google Meet",
-      icon: "meet",
-      url: "https://meet.google.com"
-    },
-    {
-      id: "social-7",
-      name: "Zoom",
-      icon: "zoom",
-      url: "https://zoom.us"
-    },
-    {
-      id: "social-8",
-      name: "Facebook",
-      icon: "facebook",
-      url: "https://facebook.com"
-    },
-    {
-      id: "social-9",
-      name: "Instagram",
-      icon: "instagram",
-      url: "https://instagram.com"
-    },
-    {
-      id: "social-10",
-      name: "TikTok",
-      icon: "tiktok",
-      url: "https://tiktok.com"
-    },
-    {
-      id: "social-11",
-      name: "YouTube",
-      icon: "youtube",
-      url: "https://youtube.com"
-    },
-    {
-      id: "social-12",
-      name: "Twitter / X",
-      icon: "twitter",
-      url: "https://x.com"
-    },
-    {
-      id: "social-13",
-      name: "Calendly",
-      icon: "calendly",
-      url: "https://calendly.com"
-    },
-    {
-      id: "social-14",
-      name: "Telegram",
-      icon: "telegram",
-      url: "https://t.me"
-    },
-    {
-      id: "social-15",
-      name: "Skype",
-      icon: "skype",
-      url: "skype:live:smahsan52?chat"
-    },
-    {
-      id: "social-16",
-      name: "GitHub",
-      icon: "github",
-      url: "https://github.com"
+      url: "+92 300 2711390",
+      hidden: false
     }
   ],
   contactModules: defaultContactModules,

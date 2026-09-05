@@ -3,7 +3,6 @@ import {
   ThumbsUp,
   MessageSquare,
   Repeat2,
-  Send,
   Eye,
   Share2,
   Check,
@@ -188,8 +187,8 @@ export const LinkedInEngagementBar: React.FC<LinkedInEngagementBarProps> = ({
         {/* Clean Hairline Divider (Matching LinkedIn screenshot) */}
         <div className="border-t border-[#1E2C48]/80 mx-3 sm:mx-4" />
 
-        {/* The 4 Action Buttons matching user screenshot: Like | Comment | Repost | Send */}
-        <div className="px-2 sm:px-4 py-1.5 grid grid-cols-4 gap-1">
+        {/* The 3 Action Buttons: Like | Comment | Repost */}
+        <div className="px-2 sm:px-4 py-1.5 grid grid-cols-3 gap-1">
           
           {/* 1. LIKE BUTTON */}
           <button
@@ -230,17 +229,6 @@ export const LinkedInEngagementBar: React.FC<LinkedInEngagementBarProps> = ({
           >
             <Repeat2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             <span className="tracking-wide">Repost</span>
-          </button>
-
-          {/* 4. SEND BUTTON */}
-          <button
-            id="linkedin-send-btn"
-            onClick={handleCopyLink}
-            className="flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold text-[#8B97AC] hover:text-[#F2F5F9] hover:bg-[#121B2E] transition-all duration-200 cursor-pointer group"
-            title="Copy and send portfolio link"
-          >
-            <Send className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            <span className="tracking-wide">Send</span>
           </button>
 
         </div>

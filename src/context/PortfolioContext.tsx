@@ -17,6 +17,7 @@ import {
   defaultEmailSettings,
   EngagementStats,
   defaultEngagementStats,
+  SocialLinkItem,
 } from '../data/portfolioData';
 import { getTotalCareerExperience } from '../utils/dateUtils';
 import {
@@ -63,6 +64,7 @@ interface PortfolioContextType {
   submitInquiry: (payload: {
     name: string;
     email: string;
+    phone?: string;
     company?: string;
     module: string;
     message: string;
@@ -88,6 +90,7 @@ interface PortfolioContextType {
   updateCertifications: (certifications: CertificationItem[]) => void;
   updateIndustries: (industries: string[]) => void;
   updateTheme: (theme: PortfolioThemeData) => Promise<void>;
+  updateSocialLinks: (socialLinks: SocialLinkItem[]) => Promise<boolean>;
   savePortfolioData: (newData: PortfolioData) => Promise<boolean>;
   resetToDefaults: () => Promise<void>;
   exportDataJSON: () => string;
@@ -102,10 +105,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const saved = localStorage.getItem(LOCAL_STORAGE_BACKUP);
       if (saved) {
         const parsed = JSON.parse(saved);
-        let tagline = parsed.consultant?.tagline;
-        if (!tagline || tagline.trim() === "Turning complex manufacturing operations into streamlined, SAP-driven processes.") {
-          tagline = initialPortfolioData.consultant.tagline;
-        }
+        const tagline = parsed.consultant?.tagline?.trim()
+          ? parsed.consultant.tagline
+          : initialPortfolioData.consultant.tagline;
         return {
           ...initialPortfolioData,
           ...parsed,
@@ -115,6 +117,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             tagline,
             careerStartDate: parsed.consultant?.careerStartDate || '2013-01',
           },
+          socialLinks: Array.isArray(parsed.socialLinks)
+            ? parsed.socialLinks
+            : (initialPortfolioData.socialLinks || []),
           theme: parsed.theme || initialPortfolioData.theme || defaultThemeData,
           adminUsers: parsed.adminUsers && parsed.adminUsers.length > 0 ? parsed.adminUsers : (initialPortfolioData.adminUsers || defaultAdminUsers),
         };
@@ -291,10 +296,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsLoading(false);
         if (docSnap.exists()) {
           const liveData = docSnap.data() as PortfolioData;
-          let resolvedTagline = liveData.consultant?.tagline;
-          if (!resolvedTagline || resolvedTagline.trim() === "Turning complex manufacturing operations into streamlined, SAP-driven processes.") {
-            resolvedTagline = initialPortfolioData.consultant.tagline;
-          }
+          const resolvedTagline = liveData.consultant?.tagline?.trim()
+            ? liveData.consultant.tagline
+            : initialPortfolioData.consultant.tagline;
 
           const mergedData: PortfolioData = {
             ...initialPortfolioData,
@@ -307,17 +311,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               geographicRegions: liveData.consultant?.geographicRegions || initialPortfolioData.consultant.geographicRegions || 'Pakistan · Saudi Arabia · UAE',
               geographicSupport: liveData.consultant?.geographicSupport || initialPortfolioData.consultant.geographicSupport || 'Remote & On-Site Support across All Regions',
             },
-            socialLinks: (() => {
-              const defaults = initialPortfolioData.socialLinks || [];
-              if (liveData.socialLinks && Array.isArray(liveData.socialLinks) && liveData.socialLinks.length > 0) {
-                const existingIcons = new Set(liveData.socialLinks.map((l) => (l.icon || '').toLowerCase().trim()));
-                const missingDefaults = defaults.filter(
-                  (def) => !existingIcons.has((def.icon || '').toLowerCase().trim())
-                );
-                return [...liveData.socialLinks, ...missingDefaults];
-              }
-              return defaults;
-            })(),
+            socialLinks: Array.isArray(liveData.socialLinks)
+              ? liveData.socialLinks
+              : (initialPortfolioData.socialLinks || []),
             contactModules: liveData.contactModules && Array.isArray(liveData.contactModules) && liveData.contactModules.length > 0
               ? liveData.contactModules
               : (initialPortfolioData.contactModules || []),
@@ -358,13 +354,21 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Helper to persist data changes to Firestore and localStorage
   const persistChanges = async (newData: PortfolioData) => {
-    setData(newData);
+    // Deep clone and clean to eliminate any undefined values that cause Firestore setDoc to fail
+    const sanitizedData: PortfolioData = JSON.parse(JSON.stringify(newData));
+
+    // Ensure socialLinks is always preserved as a clean array
+    if (!Array.isArray(sanitizedData.socialLinks)) {
+      sanitizedData.socialLinks = [];
+    }
+
+    setData(sanitizedData);
     setIsSyncing(true);
     setSyncStatus('saving');
 
     // Always update local cache instantly
     try {
-      localStorage.setItem(LOCAL_STORAGE_BACKUP, JSON.stringify(newData));
+      localStorage.setItem(LOCAL_STORAGE_BACKUP, JSON.stringify(sanitizedData));
     } catch (e) {
       console.error('Local backup write failed:', e);
     }
@@ -372,7 +376,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // Persist to Cloud Firestore for instant global updates across all devices
     try {
       const docRef = doc(db, 'portfolio', FIRESTORE_DOC_PATH);
-      await setDoc(docRef, newData);
+      await setDoc(docRef, sanitizedData);
       setSyncStatus('synced');
     } catch (err) {
       console.warn('Could not write to remote Firestore (saved in local storage):', err);
@@ -637,6 +641,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await persistChanges(updated);
   };
 
+  const updateSocialLinks = async (socialLinks: SocialLinkItem[]): Promise<boolean> => {
+    const updated: PortfolioData = {
+      ...data,
+      socialLinks,
+    };
+    await persistChanges(updated);
+    return true;
+  };
+
   const savePortfolioData = async (newData: PortfolioData): Promise<boolean> => {
     try {
       await persistChanges(newData);
@@ -680,6 +693,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const submitInquiry = async (payload: {
     name: string;
     email: string;
+    phone?: string;
     company?: string;
     module: string;
     message: string;
@@ -689,6 +703,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: newId,
       name: payload.name.trim(),
       email: payload.email.trim(),
+      phone: payload.phone?.trim() || '',
       company: payload.company?.trim() || '',
       module: payload.module,
       message: payload.message.trim(),
@@ -946,6 +961,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateCertifications,
         updateIndustries,
         updateTheme,
+        updateSocialLinks,
         savePortfolioData,
         resetToDefaults,
         exportDataJSON,

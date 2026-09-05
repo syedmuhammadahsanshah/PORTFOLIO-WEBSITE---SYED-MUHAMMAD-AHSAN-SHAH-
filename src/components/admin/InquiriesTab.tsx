@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import {
   Inbox,
   Mail,
+  Phone,
+  MessageSquare,
   Building2,
   Calendar,
   CheckCircle2,
@@ -121,6 +123,7 @@ export const InquiriesTab: React.FC = () => {
       'Status',
       'Name',
       'Email',
+      'Phone/WhatsApp',
       'Company',
       'SAP Module',
       'Message',
@@ -133,6 +136,7 @@ export const InquiriesTab: React.FC = () => {
       `"${i.status}"`,
       `"${(i.name || '').replace(/"/g, '""')}"`,
       `"${(i.email || '').replace(/"/g, '""')}"`,
+      `"${(i.phone || '').replace(/"/g, '""')}"`,
       `"${(i.company || '').replace(/"/g, '""')}"`,
       `"${(i.module || '').replace(/"/g, '""')}"`,
       `"${(i.message || '').replace(/"/g, '""')}"`,
@@ -501,6 +505,24 @@ export const InquiriesTab: React.FC = () => {
                         </button>
                       </div>
 
+                      {inq.phone && (
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-[#25D366]" />
+                          <span className="text-[#C4CCDA] font-medium">{inq.phone}</span>
+                          <button
+                            onClick={() => handleCopy(inq.id + '-phone', inq.phone!)}
+                            className="text-[#8B97AC] hover:text-[#F2F5F9]"
+                            title="Copy Phone/WhatsApp"
+                          >
+                            {copiedId === inq.id + '-phone' ? (
+                              <Check className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-[#8B97AC]" />
                         <span>{new Date(inq.createdAt).toLocaleString()}</span>
@@ -515,6 +537,20 @@ export const InquiriesTab: React.FC = () => {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1.5 self-end sm:self-start">
+                    {inq.phone && (
+                      <a
+                        href={`https://wa.me/${inq.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${inq.name}, thank you for reaching out regarding your SAP ${inq.module} inquiry.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => updateInquiryStatus(inq.id, 'replied')}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-white text-xs font-semibold transition-colors"
+                        title="Chat with client directly on WhatsApp"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </a>
+                    )}
+
                     <a
                       href={replyMailto}
                       onClick={() => updateInquiryStatus(inq.id, 'replied')}

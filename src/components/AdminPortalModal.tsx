@@ -70,6 +70,7 @@ export const AdminPortalModal: React.FC = () => {
     authenticateAdmin,
     logoutAdmin,
     updateAdminPin,
+    updateSocialLinks,
     savePortfolioData,
   } = usePortfolio();
 
@@ -106,14 +107,16 @@ export const AdminPortalModal: React.FC = () => {
   // Contact Module Dropdown State
   const [newModuleInput, setNewModuleInput] = useState('');
 
-  // Sync draft state whenever modal is opened
+  // Sync draft state only when modal transitions from closed to open
+  const prevModalOpenRef = useRef(false);
   useEffect(() => {
-    if (isAdminModalOpen) {
+    if (isAdminModalOpen && !prevModalOpenRef.current) {
       setDraftData(data);
       setSaveSuccessNotice(null);
       setCustomPhotoUrl(data.consultant.avatarUrl || '');
       setPhotoUploadError(null);
     }
+    prevModalOpenRef.current = isAdminModalOpen;
   }, [isAdminModalOpen, data]);
 
   // Check if draft has unsaved differences from live saved data
@@ -267,16 +270,28 @@ export const AdminPortalModal: React.FC = () => {
   };
 
   // Social Links Handlers
-  const updateDraftSocialLinks = (updated: SocialLinkItem[]) => {
+  const persistSocialLinksList = async (updatedList: SocialLinkItem[], noticeMsg?: string) => {
     setDraftData((prev) => ({
       ...prev,
-      socialLinks: updated,
+      socialLinks: updatedList,
     }));
+    try {
+      await updateSocialLinks(updatedList);
+      if (noticeMsg) {
+        triggerNotice(noticeMsg);
+      }
+    } catch (err) {
+      console.error('Failed to update social links:', err);
+    }
+  };
+
+  const updateDraftSocialLinks = (updated: SocialLinkItem[]) => {
+    persistSocialLinksList(updated);
   };
 
   const updateSingleSocialLink = (id: string, patch: Partial<SocialLinkItem>) => {
     setDraftData((prev) => {
-      const currentList = prev.socialLinks || initialDefaultPortfolioData.socialLinks || [];
+      const currentList = prev.socialLinks !== undefined ? prev.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
       const updated = currentList.map((item) => {
         if (item.id === id) {
           const newItem = { ...item, ...patch };
@@ -294,6 +309,17 @@ export const AdminPortalModal: React.FC = () => {
     });
   };
 
+  const handleToggleSocialLinkVisibility = (id: string) => {
+    const currentList = draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
+    const updated = currentList.map((item) => {
+      if (item.id === id) {
+        return { ...item, hidden: !item.hidden };
+      }
+      return item;
+    });
+    persistSocialLinksList(updated, '✓ Channel visibility updated & saved permanently!');
+  };
+
   const handleAddSocialLink = (presetIcon?: string, presetUrl?: string) => {
     const iconName = presetIcon || 'linkedin';
     const foundPlatform = SUPPORTED_PLATFORMS.find((p) => p.id === normalizePlatform(iconName));
@@ -308,17 +334,16 @@ export const AdminPortalModal: React.FC = () => {
       name: getPlatformName(iconName),
       icon: iconName,
       url: defaultUrl,
+      hidden: false,
     };
 
-    setDraftData((prev) => ({
-      ...prev,
-      socialLinks: [...(prev.socialLinks || initialDefaultPortfolioData.socialLinks || []), newLink],
-    }));
-    triggerNotice(`Added ${getPlatformName(iconName)} to social links.`);
+    const currentList = draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
+    const updated = [...currentList, newLink];
+    persistSocialLinksList(updated, `✓ Added ${getPlatformName(iconName)} & saved permanently!`);
   };
 
   const handleAddAllMissingSocialLinks = () => {
-    const currentList = draftData.socialLinks || initialDefaultPortfolioData.socialLinks || [];
+    const currentList = draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
     const existingIcons = new Set(currentList.map((l) => normalizePlatform(l.icon)));
     const toAdd: SocialLinkItem[] = [];
 
@@ -332,6 +357,7 @@ export const AdminPortalModal: React.FC = () => {
           name: p.name,
           icon: p.id,
           url,
+          hidden: false,
         });
       }
     }
@@ -342,42 +368,57 @@ export const AdminPortalModal: React.FC = () => {
     }
 
     const updated = [...currentList, ...toAdd];
-    setDraftData((prev) => ({ ...prev, socialLinks: updated }));
-    triggerNotice(`✓ Added ${toAdd.length} social & communication platforms!`);
+    persistSocialLinksList(updated, `✓ Added ${toAdd.length} platforms & saved permanently!`);
   };
 
   const handleResetDefaultSocialLinks = () => {
     const defaults = initialDefaultPortfolioData.socialLinks || [];
-    setDraftData((prev) => ({ ...prev, socialLinks: defaults }));
-    triggerNotice('✓ Reset social links to default suite.');
+    persistSocialLinksList(defaults, '✓ Reset to core recommended channels (LinkedIn, WhatsApp, Email, Phone) & saved permanently!');
   };
 
   const handleDeleteSocialLink = (id: string) => {
-    setDraftData((prev) => ({
-      ...prev,
-      socialLinks: (prev.socialLinks || initialDefaultPortfolioData.socialLinks || []).filter((item) => item.id !== id),
-    }));
-    triggerNotice('Social link removed.');
+    const currentList = draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
+    const updated = currentList.filter((item) => item.id !== id);
+    persistSocialLinksList(updated, '✓ Social link removed & saved permanently!');
   };
 
   const handleMoveSocialLink = (index: number, direction: 'up' | 'down') => {
-    setDraftData((prev) => {
-      const list = [...(prev.socialLinks || initialDefaultPortfolioData.socialLinks || [])];
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= list.length) return prev;
-      const temp = list[index];
-      list[index] = list[targetIndex];
-      list[targetIndex] = temp;
-      return {
-        ...prev,
-        socialLinks: list,
-      };
+    const list = [...(draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []))];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) return;
+    const temp = list[index];
+    list[index] = list[targetIndex];
+    list[targetIndex] = temp;
+    persistSocialLinksList(list, '✓ Channels reordered & saved permanently!');
+  };
+
+  const handleSelectPlatformChange = (id: string, selectedVal: string) => {
+    if (selectedVal === 'custom') return;
+    const meta = SUPPORTED_PLATFORMS.find((p) => p.id === selectedVal);
+    const currentList = draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
+    const updated = currentList.map((item) => {
+      if (item.id === id) {
+        let newUrl = item.url;
+        if (!newUrl || newUrl.trim() === '' || (newUrl.startsWith('https://') && newUrl.length < 15)) {
+          if (selectedVal === 'email') newUrl = draftData.consultant.email || 'smahsan52@hotmail.com';
+          else if (selectedVal === 'phone' || selectedVal === 'whatsapp') newUrl = draftData.consultant.phone || '+92 300 2711390';
+          else newUrl = meta?.defaultUrl || '';
+        }
+        return {
+          ...item,
+          icon: selectedVal,
+          name: meta?.name || getPlatformName(selectedVal),
+          url: newUrl,
+        };
+      }
+      return item;
     });
+    persistSocialLinksList(updated, `✓ Platform changed to ${meta?.name || getPlatformName(selectedVal)} & saved permanently!`);
   };
 
   const handleAutoSaveSocial = () => {
-    savePortfolioData(draftData);
-    triggerNotice('✓ Social icons saved automatically.');
+    const list = draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []);
+    persistSocialLinksList(list, '✓ Social icon saved permanently.');
   };
 
   // Contact Module Dropdown Handlers
@@ -1652,84 +1693,147 @@ export const AdminPortalModal: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-mono font-bold text-[#D9A94E] uppercase tracking-wider flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-[#3B82F6]" />
-                          <span>Direct Contact Icons Bar Preview (Matches Footer &amp; Contact Page)</span>
+                          <span>Direct Contact Icons Bar Preview (Visible on Public Website)</span>
                         </div>
                         <span className="text-[10px] text-[#8B97AC] font-mono">
-                          {(draftData.socialLinks || initialDefaultPortfolioData.socialLinks || []).length} active icon(s)
+                          {((draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || [])).filter((l) => !l.hidden)).length} visible on site
                         </span>
                       </div>
 
                       <div className="p-4 rounded-xl bg-[#121B2E] border border-[#1E2C48] flex flex-wrap items-center gap-3">
-                        {(draftData.socialLinks || initialDefaultPortfolioData.socialLinks || []).map((item) => (
-                          <div
-                            key={item.id}
-                            className="w-11 h-11 rounded-xl bg-[#0D1424] border border-[#1E2C48] text-[#C4CCDA] flex items-center justify-center shadow-sm"
-                            title={`${getPlatformName(item.icon)}: ${item.url}`}
-                          >
-                            <SocialIcon icon={item.icon} className="w-4 h-4" />
+                        {((draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || [])).filter((l) => !l.hidden)).length === 0 ? (
+                          <div className="text-xs text-[#8B97AC] italic py-1">
+                            No social or communication icons are currently set to visible. None will appear in the footer or Contact section.
                           </div>
-                        ))}
+                        ) : (
+                          (draftData.socialLinks !== undefined ? draftData.socialLinks : (initialDefaultPortfolioData.socialLinks || []))
+                            .filter((item) => !item.hidden)
+                            .map((item) => (
+                              <div
+                                key={item.id}
+                                className="w-11 h-11 rounded-xl bg-[#0D1424] border border-[#1E2C48] text-[#C4CCDA] flex items-center justify-center shadow-sm"
+                                title={`${getPlatformName(item.icon)}: ${item.url}`}
+                              >
+                                <SocialIcon icon={item.icon} className="w-4 h-4" />
+                              </div>
+                            ))
+                        )}
                       </div>
                     </div>
 
                     {/* Dynamic Social Link Cards List */}
                     <div className="space-y-4">
-                      {(draftData.socialLinks && draftData.socialLinks.length > 0
-                        ? draftData.socialLinks
-                        : (initialDefaultPortfolioData.socialLinks || [])
-                      ).map((item, idx, arr) => (
-                        <div
-                          key={item.id}
-                          className="p-5 rounded-2xl bg-[#121B2E] border border-[#1E2C48] space-y-3 relative group transition-all hover:border-[#3B82F6]/40"
-                        >
-                          {/* Card Header Row */}
-                          <div className="flex items-center justify-between pb-3 border-b border-[#1E2C48]">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-[#0D1424] border border-[#1E2C48] flex items-center justify-center text-[#D9A94E] shadow-sm">
-                                <SocialIcon icon={item.icon} className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <span className="font-heading font-bold text-sm text-[#F2F5F9] block">
-                                  {idx + 1}. {getPlatformName(item.icon) || item.name || 'Platform'}
-                                </span>
-                                <span className="text-[10px] font-mono text-[#8B97AC]">
-                                  Key: {normalizePlatform(item.icon)}
-                                </span>
-                              </div>
-                            </div>
+                      {(() => {
+                        const currentSocialList = draftData.socialLinks !== undefined
+                          ? draftData.socialLinks
+                          : (initialDefaultPortfolioData.socialLinks || []);
 
-                            <div className="flex items-center gap-1.5">
-                              {/* Move Up */}
-                              <button
-                                type="button"
-                                onClick={() => handleMoveSocialLink(idx, 'up')}
-                                disabled={idx === 0}
-                                className="p-1.5 rounded-lg text-[#8B97AC] hover:text-[#F2F5F9] hover:bg-[#0D1424] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                title="Move up"
-                              >
-                                <ChevronUp className="w-4 h-4" />
-                              </button>
-                              {/* Move Down */}
-                              <button
-                                type="button"
-                                onClick={() => handleMoveSocialLink(idx, 'down')}
-                                disabled={idx === arr.length - 1}
-                                className="p-1.5 rounded-lg text-[#8B97AC] hover:text-[#F2F5F9] hover:bg-[#0D1424] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                title="Move down"
-                              >
-                                <ChevronDown className="w-4 h-4" />
-                              </button>
-                              {/* Delete */}
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteSocialLink(item.id)}
-                                className="p-1.5 rounded-lg text-[#8B97AC] hover:text-rose-400 hover:bg-rose-500/10 transition-colors ml-1 cursor-pointer"
-                                title="Remove this icon"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                        if (currentSocialList.length === 0) {
+                          return (
+                            <div className="p-8 rounded-2xl bg-[#121B2E] border border-dashed border-[#1E2C48] text-center space-y-3">
+                              <Share2 className="w-8 h-8 text-[#8B97AC] mx-auto opacity-50" />
+                              <p className="text-sm font-semibold text-[#F2F5F9]">No social icons configured</p>
+                              <p className="text-xs text-[#8B97AC] max-w-sm mx-auto">
+                                You have removed all social channels. No social icons will be shown on your public portfolio. Click &quot;Add Icon / Link&quot; above to add specific channels anytime.
+                              </p>
                             </div>
-                          </div>
+                          );
+                        }
+
+                        return currentSocialList.map((item, idx, arr) => (
+                          <div
+                            key={item.id}
+                            className={`p-5 rounded-2xl bg-[#121B2E] border space-y-3 relative group transition-all ${
+                              item.hidden
+                                ? 'border-amber-500/30 bg-[#101726]/60 opacity-80'
+                                : 'border-[#1E2C48] hover:border-[#3B82F6]/40'
+                            }`}
+                          >
+                            {/* Card Header Row */}
+                            <div className="flex items-center justify-between pb-3 border-b border-[#1E2C48]">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl bg-[#0D1424] border border-[#1E2C48] flex items-center justify-center shadow-sm ${item.hidden ? 'text-[#8B97AC]' : 'text-[#D9A94E]'}`}>
+                                  <SocialIcon icon={item.icon} className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-heading font-bold text-sm text-[#F2F5F9]">
+                                      {idx + 1}. {getPlatformName(item.icon) || item.name || 'Platform'}
+                                    </span>
+                                    {item.hidden ? (
+                                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                        <EyeOff className="w-3 h-3" />
+                                        <span>Hidden</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                        <Eye className="w-3 h-3" />
+                                        <span>Visible</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-mono text-[#8B97AC]">
+                                    Key: {normalizePlatform(item.icon)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5">
+                                {/* Visibility Toggle: Show / Hide */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleSocialLinkVisibility(item.id)}
+                                  className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                                    item.hidden
+                                      ? 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30'
+                                      : 'bg-[#0D1424] text-[#8B97AC] hover:text-[#F2F5F9] hover:bg-[#18243C] border border-[#1E2C48]'
+                                  }`}
+                                  title={item.hidden ? 'Click to show this icon on public portfolio' : 'Click to hide this icon from public portfolio'}
+                                >
+                                  {item.hidden ? (
+                                    <>
+                                      <Eye className="w-3.5 h-3.5 text-amber-300" />
+                                      <span>Show</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <EyeOff className="w-3.5 h-3.5" />
+                                      <span>Hide</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                {/* Move Up */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSocialLink(idx, 'up')}
+                                  disabled={idx === 0}
+                                  className="p-1.5 rounded-lg text-[#8B97AC] hover:text-[#F2F5F9] hover:bg-[#0D1424] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                  title="Move up"
+                                >
+                                  <ChevronUp className="w-4 h-4" />
+                                </button>
+                                {/* Move Down */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSocialLink(idx, 'down')}
+                                  disabled={idx === arr.length - 1}
+                                  className="p-1.5 rounded-lg text-[#8B97AC] hover:text-[#F2F5F9] hover:bg-[#0D1424] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                  title="Move down"
+                                >
+                                  <ChevronDown className="w-4 h-4" />
+                                </button>
+                                {/* Delete */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteSocialLink(item.id)}
+                                  className="p-1.5 rounded-lg text-[#8B97AC] hover:text-rose-400 hover:bg-rose-500/10 transition-colors ml-1 cursor-pointer"
+                                  title="Permanently remove this icon"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
 
                           {/* Two Fields: Platform Selector / Name & Link or Address */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1739,23 +1843,7 @@ export const AdminPortalModal: React.FC = () => {
                               </label>
                               <select
                                 value={SUPPORTED_PLATFORMS.some((p) => p.id === normalizePlatform(item.icon)) ? normalizePlatform(item.icon) : 'custom'}
-                                onChange={(e) => {
-                                  const selectedVal = e.target.value;
-                                  if (selectedVal !== 'custom') {
-                                    const meta = SUPPORTED_PLATFORMS.find((p) => p.id === selectedVal);
-                                    let newUrl = item.url;
-                                    if (!newUrl || newUrl.trim() === '' || newUrl.startsWith('https://') && newUrl.length < 15) {
-                                      if (selectedVal === 'email') newUrl = draftData.consultant.email || 'smahsan52@hotmail.com';
-                                      else if (selectedVal === 'phone' || selectedVal === 'whatsapp') newUrl = draftData.consultant.phone || '+92 300 2711390';
-                                      else newUrl = meta?.defaultUrl || '';
-                                    }
-                                    updateSingleSocialLink(item.id, {
-                                      icon: selectedVal,
-                                      name: meta?.name || getPlatformName(selectedVal),
-                                      url: newUrl,
-                                    });
-                                  }
-                                }}
+                                onChange={(e) => handleSelectPlatformChange(item.id, e.target.value)}
                                 className="w-full px-3.5 py-2.5 rounded-xl bg-[#0D1424] border border-[#1E2C48] text-xs text-[#F2F5F9] focus:outline-none focus:border-[#3B82F6] transition-colors cursor-pointer"
                               >
                                 <optgroup label="Video & Meetings" className="bg-[#0D1424] text-[#3B82F6] font-bold">
@@ -1822,8 +1910,9 @@ export const AdminPortalModal: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      ));
+                    })()}
+                  </div>
 
                     {/* Add Icon Button */}
                     <button
@@ -3793,6 +3882,24 @@ export const AdminPortalModal: React.FC = () => {
                       <p className="text-xs text-[#8B97AC]">
                         Export portfolio data as formatted JSON for local backup, or restore data anytime.
                       </p>
+                    </div>
+
+                    {/* GitHub & Live Data Protection Info */}
+                    <div className="p-4 rounded-2xl bg-[#0D1424] border border-[#1E2C48] flex items-start gap-3">
+                      <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 mt-0.5">
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="font-semibold text-[#F2F5F9] flex items-center gap-2">
+                          <span>Live Database & GitHub Push Protection Active</span>
+                          <span className="px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono">
+                            Protected
+                          </span>
+                        </div>
+                        <p className="text-[#8B97AC] leading-relaxed">
+                          All changes you make directly in this portal are stored in <strong className="text-[#F2F5F9]">Cloud Firestore</strong> and take 100% priority over repository files. When code commits or updates are pushed to GitHub, only the specific code files you modified are pushed — your live database content is completely decoupled and will never be overwritten.
+                        </p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

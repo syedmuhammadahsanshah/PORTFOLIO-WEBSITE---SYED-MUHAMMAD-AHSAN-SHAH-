@@ -10,6 +10,7 @@ export interface EmailDispatchResult {
 export interface InquiryPayload {
   name: string;
   email: string;
+  phone?: string;
   company?: string;
   module: string;
   message: string;
@@ -49,6 +50,7 @@ export async function dispatchInquiryEmail(
           to: targetEmail,
           name: payload.name,
           email: payload.email,
+          phone: payload.phone || 'Not Specified',
           company: payload.company || 'Not Specified',
           module: payload.module,
           message: payload.message,
@@ -130,6 +132,7 @@ export async function dispatchInquiryEmail(
       body: JSON.stringify({
         name: payload.name,
         email: payload.email,
+        phone: payload.phone || 'Not Specified',
         company: payload.company || 'Not Specified',
         module_requested: payload.module,
         message: payload.message,
